@@ -122,3 +122,11 @@
     @apply bg-background text-foreground antialiased select-none;
   }
 }
+
+/* 无边框窗口：拖拽区域与排除项（隐藏标题栏后用于拖动窗口） */
+.app-drag {
+  -webkit-app-region: drag;
+}
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
