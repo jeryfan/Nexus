@@ -1,0 +1,9 @@
+allowBuilds:
+  electron: true
+  electron-winstaller: false
+  esbuild: true
+
+# electron-vite 5.0.0 官方 peer 仅声明到 vite ^7，本项目强制使用 vite 8
+peerDependencyRules:
+  allowedVersions:
+    vite: "8"
