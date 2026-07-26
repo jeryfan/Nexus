@@ -20,6 +20,16 @@ pnpm format       # Prettier
 pnpm build:mac    # 打包 macOS 安装包（另有 build:win / build:linux）
 ```
 
+## UI 技术选型
+
+- **组件库**：shadcn/ui（已初始化：Tailwind CSS v4 + CSS 变量，base color `stone` 暖灰浅色系，圆角 0.75rem，含 dark 主题变量）
+  - 添加组件：`pnpm dlx shadcn@latest add <组件名> --yes`
+  - 主题 token 定义在 `src/renderer/src/assets/main.css`，改风格只动这一处
+  - 注意：CLI 会把依赖装进 `dependencies`，装完需手动移到 `devDependencies`
+- **图标库**：lucide-react（shadcn/ui 的默认图标库）
+- **路径别名**：`@renderer/*` → `src/renderer/src/*`（tsconfig + electron.vite.config.ts + components.json 三处同步）
+- 渲染层依赖（react/lucide-react/radix-ui 等经 Vite 打包进产物的库）一律装 `devDependencies`，不随 app 分发 node_modules
+
 ## 目录结构
 
 ```
