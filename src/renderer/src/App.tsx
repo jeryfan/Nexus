@@ -1,25 +1,7 @@
-import { Button } from '@renderer/components/ui/button'
-import { Terminal } from 'lucide-react'
+import { AppShell } from '@renderer/components/app-shell'
 
 function App(): React.JSX.Element {
-  const ping = (): void => window.electron.ipcRenderer.send('ping')
-
-  return (
-    <div className="app-drag flex h-screen flex-col items-center justify-center bg-background">
-      <div className="app-no-drag flex flex-col items-center gap-6">
-        <div className="flex flex-col items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">Nexus</h1>
-          <p className="text-sm text-muted-foreground">
-            electron-vite + React + TypeScript + shadcn/ui
-          </p>
-        </div>
-        <Button variant="outline" onClick={ping}>
-          <Terminal />
-          Ping 主进程
-        </Button>
-      </div>
-    </div>
-  )
+  return <AppShell />
 }
 
 export default App

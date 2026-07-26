@@ -27,6 +27,7 @@ pnpm build:mac    # 打包 macOS 安装包（另有 build:win / build:linux）
   - 主题 token 定义在 `src/renderer/src/assets/main.css`，改风格只动这一处
   - 注意：CLI 会把依赖装进 `dependencies`，装完需手动移到 `devDependencies`
 - **图标库**：lucide-react（shadcn/ui 的默认图标库）
+- **状态管理**：zustand（渲染层全局状态；store 按领域拆分放在 `src/renderer/src/stores/`，如 `sidebar.ts` 边栏布局、`navigation.ts` 视图历史）
 - **路径别名**：`@renderer/*` → `src/renderer/src/*`（tsconfig + electron.vite.config.ts + components.json 三处同步）
 - 渲染层依赖（react/lucide-react/radix-ui 等经 Vite 打包进产物的库）一律装 `devDependencies`，不随 app 分发 node_modules
 
