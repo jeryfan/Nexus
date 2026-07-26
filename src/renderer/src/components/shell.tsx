@@ -3,7 +3,15 @@ import { cn } from '@renderer/lib/utils'
 import { WindowControls } from '@renderer/components/window-controls'
 import { useSidebarStore } from '@renderer/stores/sidebar'
 
-function AppShell(): React.JSX.Element {
+interface ShellProps {
+  /** 边栏内容（顶栏控制按钮之下） */
+  sidebar?: React.ReactNode
+  /** 右侧内容区 */
+  children?: React.ReactNode
+}
+
+/** 应用外壳：左侧边栏（可折叠 / 拖拽调宽）+ 右侧内容区，首页与设置页共用 */
+function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
   const collapsed = useSidebarStore((state) => state.collapsed)
   const width = useSidebarStore((state) => state.width)
   const setWidth = useSidebarStore((state) => state.setWidth)
@@ -61,8 +69,7 @@ function AppShell(): React.JSX.Element {
             <WindowControls />
           </div>
 
-          {/* 菜单区域：暂为空 */}
-          <div className="flex-1" />
+          <div className="flex min-h-0 flex-1 flex-col">{sidebar}</div>
 
           {/* 右缘拖拽手柄：5px 热区 + 1px 高亮线（折叠时随容器溢出隐藏） */}
           <div
@@ -81,7 +88,7 @@ function AppShell(): React.JSX.Element {
         </div>
       </aside>
 
-      {/* 右侧内容区：暂为空；折叠后在顶部显示控制按钮 */}
+      {/* 右侧内容区：折叠后在顶部显示控制按钮 */}
       <main className="app-drag relative h-full min-w-0 flex-1 bg-background">
         {collapsed && (
           <div
@@ -93,9 +100,10 @@ function AppShell(): React.JSX.Element {
             <WindowControls />
           </div>
         )}
+        {children}
       </main>
     </div>
   )
 }
 
-export { AppShell }
+export { Shell }

@@ -130,3 +130,7 @@
 .app-no-drag {
   -webkit-app-region: no-drag;
 }
+/* 浮层（下拉菜单等）打开时禁用窗口拖拽：app-drag 区域会拦截 mousedown，导致浮层收不到点击 */
+body[data-overlay-open] .app-drag {
+  -webkit-app-region: no-drag;
+}
