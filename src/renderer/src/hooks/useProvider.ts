@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@data/hooks/useDataApi'
 import { loggerService } from '@logger'
 import { getProviderLabelKey } from '@renderer/utils/label'
-import { isSystemProviderId } from '@renderer/types/provider'
+import { isSystemProviderId } from '@shared/utils/systemProviderId'
 import type {
   CreateProviderDto,
   ListProvidersQuery,
@@ -335,4 +335,3 @@ export function useProviderActions() {
 
   return { updateProviderById, deleteProviderById }
 }
-

@@ -72,9 +72,6 @@ export const VENDOR_PATTERNS = {
   /** Perplexity (sonar family). */
   perplexity: /^sonar/i,
 
-  /** Baichuan family. */
-  baichuan: /^baichuan/i,
-
   /** Xiaomi MiMo family. */
   mimo: /^mimo-/i,
 
@@ -118,4 +115,3 @@ export function isVendor(vendor: VendorKey): (normalizedId: string) => boolean {
   const pattern = VENDOR_PATTERNS[vendor]
   return (id: string) => pattern.test(id)
 }
-

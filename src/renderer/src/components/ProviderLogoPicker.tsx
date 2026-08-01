@@ -2,13 +2,13 @@ import type { CompoundIcon } from '@nexus/ui'
 import { InputGroup, InputGroupAddon, InputGroupInput, Tooltip } from '@nexus/ui'
 import {
   loadProviderIconCatalog,
-  PROVIDER_ICON_META_CATALOG,
+  resolveProviderIconRef,
   type ProviderIconKey
 } from '@nexus/ui/icons'
 import { loggerService } from '@logger'
 import { ProviderAvatarPrimitive } from '@renderer/components/ProviderAvatar'
 import { getProviderLabelKey } from '@renderer/utils/label'
-import { isSystemProviderId } from '@renderer/types/provider'
+import { SystemProviderIds } from '@shared/utils/systemProviderId'
 import { Search } from 'lucide-react'
 import type { FC } from 'react'
 import { useEffect, useMemo, useState } from 'react'
@@ -18,6 +18,8 @@ const logger = loggerService.withContext('ProviderLogoPicker')
 interface Props {
   onProviderClick: (providerId: string) => void
 }
+
+const PROVIDER_LOGO_OPTIONS = Object.values(SystemProviderIds)
 
 const ProviderLogoPicker: FC<Props> = ({ onProviderClick }) => {
   const [searchText, setSearchText] = useState('')
@@ -41,11 +43,14 @@ const ProviderLogoPicker: FC<Props> = ({ onProviderClick }) => {
   }, [])
 
   const filteredProviders = useMemo(() => {
-    const providers = (Object.keys(PROVIDER_ICON_META_CATALOG) as ProviderIconKey[]).map((id) => ({
-      id,
-      icon: iconCatalog?.[id],
-      name: isSystemProviderId(id) ? getProviderLabelKey(id) : id
-    }))
+    const providers = PROVIDER_LOGO_OPTIONS.map((id) => {
+      const ref = resolveProviderIconRef(id)
+      return {
+        id,
+        icon: ref?.kind === 'provider' ? iconCatalog?.[ref.key] : undefined,
+        name: getProviderLabelKey(id)
+      }
+    })
 
     if (!searchText) return providers
 
@@ -94,4 +99,3 @@ const ProviderLogoPicker: FC<Props> = ({ onProviderClick }) => {
 }
 
 export default ProviderLogoPicker
-

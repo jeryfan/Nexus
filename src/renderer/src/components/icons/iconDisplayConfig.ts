@@ -13,22 +13,12 @@ const ICON_DISPLAY_CONFIG: Readonly<
   Record<IconDisplayContext, Readonly<Record<string, IconDisplayConfig>>>
 > = {
   'mini-app': {
-    abacus: miniAppContainedIcon,
-    zeroone: miniAppContainedIcon,
     minimax: miniAppContainedIcon,
-    groq: miniAppContainedIcon,
     anthropic: miniAppContainedIcon,
-    claude: miniAppContainedIcon,
-    felo: miniAppContainedIcon,
-    mintop3: miniAppContainedIcon,
-    '3mintop': miniAppContainedIcon,
-    coze: miniAppContainedIcon
+    claude: miniAppContainedIcon
   },
   'provider-list': {
-    lmstudio: providerListContainedIcon,
-    anthropic: providerListContainedIcon,
-    yi: providerListContainedIcon,
-    groq: providerListContainedIcon
+    anthropic: providerListContainedIcon
   }
 }
 
@@ -39,4 +29,3 @@ export function getIconDisplayConfig(
   if (!iconId) return undefined
   return ICON_DISPLAY_CONFIG[context][iconId.toLowerCase()] ?? defaultIcon
 }
-

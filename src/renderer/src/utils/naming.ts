@@ -1,6 +1,3 @@
-import { getProviderLabelKey } from '@renderer/utils/label'
-import { isSystemProvider, type Provider } from '@renderer/types/provider'
-
 /**
  * 从模型 ID 中提取默认组名。
  * 规则如下：
@@ -73,14 +70,7 @@ export const getBaseModelName = (id: string, delimiter: string = '/'): string =>
  * @returns {string} 小写的基础名称
  */
 export const getLowerBaseModelName = (id: string, delimiter: string = '/'): string => {
-  // Normalize Fireworks model IDs: Fireworks replaces '.' with 'p' in version numbers
-  // e.g. accounts/fireworks/models/deepseek-v3p2 -> deepseek-v3.2
-  // e.g. accounts/fireworks/models/kimi-k2p5 -> kimi-k2.5
-  const normalizedId = id.toLowerCase().startsWith('accounts/fireworks/models/')
-    ? id.replace(/(\d)p(?=\d)/g, '$1.')
-    : id
-
-  let baseModelName = getBaseModelName(normalizedId, delimiter).toLowerCase()
+  let baseModelName = getBaseModelName(id, delimiter).toLowerCase()
   // Remove suffix
   // for openrouter
   if (baseModelName.endsWith(':free')) {
@@ -95,15 +85,6 @@ export const getLowerBaseModelName = (id: string, delimiter: string = '/'): stri
     baseModelName = baseModelName.replace(':cloud', '')
   }
   return baseModelName
-}
-
-/**
- * 获取模型服务商名称，内置服务商返回硬编码中文标签，自定义服务商返回用户设置的名称
- * @param provider 服务商
- * @returns 描述性的名字
- */
-export const getFancyProviderName = (provider: Provider) => {
-  return isSystemProvider(provider) ? getProviderLabelKey(provider.id) : provider.name
 }
 
 // \uFE0F = VS16 (emoji-presentation selector); \u20E3 = combining enclosing keycap (1️⃣);
@@ -287,4 +268,3 @@ export function truncateText(
   // Return word-boundary result if valid, otherwise hard truncate
   return wordResult.length >= minLength ? wordResult.trim() : text.substring(0, maxLength)
 }
-

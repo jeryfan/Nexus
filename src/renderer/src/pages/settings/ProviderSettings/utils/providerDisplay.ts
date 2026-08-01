@@ -20,7 +20,7 @@ export function isProviderPresetInstanceSource(provider: Provider): boolean {
     return false
   }
 
-  if (provider.authType !== 'api-key' && provider.authType !== 'iam-azure') {
+  if (provider.authType !== 'api-key') {
     return false
   }
 
@@ -97,4 +97,3 @@ export function replaceEndpointConfigDomain(
   }
   return result
 }
-

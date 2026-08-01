@@ -6,13 +6,7 @@ import { useState } from 'react'
 import { useProviderEndpointActions } from '../hooks/providerSetting/useProviderEndpointActions'
 import { useProviderEndpoints } from '../hooks/providerSetting/useProviderEndpoints'
 import { useProviderHostPreview } from '../hooks/providerSetting/useProviderHostPreview'
-import { useProviderMeta } from '../hooks/providerSetting/useProviderMeta'
-import {
-  AnthropicApiHostField,
-  ApiHostField,
-  ApiHostSection,
-  AzureApiVersionField
-} from './ApiHostFields'
+import { AnthropicApiHostField, ApiHostField, ApiHostSection } from './ApiHostFields'
 import ProviderCustomHeaderDrawer from './ProviderCustomHeaderDrawer'
 
 const ENDPOINT_CONFIG_PRESET_FIELDS = ['endpointConfigs'] as const
@@ -28,16 +22,8 @@ export default function ApiHost({ providerId, onRequestModelPullGuide }: ApiHost
   const [customHeaderOpen, setCustomHeaderOpen] = useState(false)
   const [apiHostEdited, setApiHostEdited] = useState(false)
   const [anthropicApiHostEdited, setAnthropicApiHostEdited] = useState(false)
-  const meta = useProviderMeta(providerId)
-  const {
-    primaryEndpoint,
-    apiHost,
-    setApiHost,
-    anthropicApiHost,
-    setAnthropicApiHost,
-    apiVersion,
-    setApiVersion
-  } = useProviderEndpoints(provider)
+  const { primaryEndpoint, apiHost, setApiHost, anthropicApiHost, setAnthropicApiHost } =
+    useProviderEndpoints(provider)
   const topology = getProviderHostTopology(provider)
   const { data: preset } = useProviderPreset(providerId, ENDPOINT_CONFIG_PRESET_FIELDS)
   // Factory-default host for the primary endpoint (registry-sourced); '' for custom providers.
@@ -57,7 +43,6 @@ export default function ApiHost({ providerId, onRequestModelPullGuide }: ApiHost
     providerApiHost: topology.primaryBaseUrl,
     anthropicApiHost,
     setAnthropicApiHost,
-    apiVersion,
     defaultApiHost,
     patchProvider: updateProvider
   })
@@ -88,18 +73,6 @@ export default function ApiHost({ providerId, onRequestModelPullGuide }: ApiHost
     return null
   }
 
-  if (!meta.isConnectionFieldVisible) {
-    return meta.isAzureOpenAI ? (
-      <ApiHostSection>
-        <AzureApiVersionField
-          apiVersion={apiVersion}
-          onApiVersionChange={setApiVersion}
-          onApiVersionCommit={endpointActions.commitApiVersion}
-        />
-      </ApiHostSection>
-    ) : null
-  }
-
   return (
     <>
       <ApiHostSection>
@@ -121,14 +94,6 @@ export default function ApiHost({ providerId, onRequestModelPullGuide }: ApiHost
             onOpenRequestConfig={() => setCustomHeaderOpen(true)}
           />
         )}
-        {meta.isAzureOpenAI && (
-          <AzureApiVersionField
-            className="mt-4"
-            apiVersion={apiVersion}
-            onApiVersionChange={setApiVersion}
-            onApiVersionCommit={endpointActions.commitApiVersion}
-          />
-        )}
       </ApiHostSection>
       <ProviderCustomHeaderDrawer
         providerId={providerId}
@@ -138,4 +103,3 @@ export default function ApiHost({ providerId, onRequestModelPullGuide }: ApiHost
     </>
   )
 }
-

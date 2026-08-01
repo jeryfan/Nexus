@@ -121,8 +121,6 @@ const SECONDARY_ENDPOINT_LABELS: Array<{ type: EndpointType; label: string }> = 
 
 function emptyAuthConfigFor(authType: AuthType): AuthConfig {
   switch (authType) {
-    case 'iam-azure':
-      return { type: 'iam-azure', apiVersion: '' }
     case 'oauth':
       return { type: 'oauth', clientId: '' }
     case 'api-key':
@@ -133,11 +131,11 @@ function emptyAuthConfigFor(authType: AuthType): AuthConfig {
 
 /**
  * In duplicate mode, whether the source's auth shape uses URL-based endpoints
- * (`api-key`, `iam-azure`) vs. account-based ones (`oauth`)
+ * (`api-key`) vs. account-based ones (`oauth`)
  * decides whether the form asks for a Base URL.
  */
 function duplicateNeedsBaseUrl(authType: AuthType): boolean {
-  return authType === 'api-key' || authType === 'iam-azure'
+  return authType === 'api-key'
 }
 
 function isCustomProviderTextEndpoint(
@@ -1257,4 +1255,3 @@ function ApiKeyField({ value, onChange }: ApiKeyFieldProps) {
     </Field>
   )
 }
-

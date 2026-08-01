@@ -33,11 +33,11 @@ export function isWebSearchModel(model: Model): boolean {
   return sharedIsWebSearchModel(model)
 }
 
-/** Provider-host forces web search on every request (Perplexity / OpenRouter sonar). */
+/** OpenRouter's Sonar models force web search on every request. */
 export function isMandatoryWebSearchModel(model: Model): boolean {
   if (!model) return false
   const { providerId, modelId } = parseUniqueModelId(model.id)
-  if (providerId !== 'perplexity' && providerId !== 'openrouter') return false
+  if (providerId !== 'openrouter') return false
   return PERPLEXITY_SEARCH_MODELS.includes(getLowerBaseModelName(modelId))
 }
 
@@ -51,4 +51,3 @@ export function isOpenRouterBuiltInWebSearchModel(model: Model): boolean {
     getLowerBaseModelName(modelId).includes('sonar')
   )
 }
-

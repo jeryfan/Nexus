@@ -388,14 +388,10 @@ export const getBaseModelName = (id: string, delimiter: string = '/'): string =>
 
 /**
  * Extract the base model name and normalize to lowercase.
- * Handles Fireworks version-number normalization and common suffixes.
+ * Handles common provider-listing suffixes.
  */
 export const getLowerBaseModelName = (id: string, delimiter: string = '/'): string => {
-  const normalizedId = id.toLowerCase().startsWith('accounts/fireworks/models/')
-    ? id.replace(/(\d)p(?=\d)/g, '$1.')
-    : id
-
-  let baseModelName = getBaseModelName(normalizedId, delimiter).toLowerCase()
+  let baseModelName = getBaseModelName(id, delimiter).toLowerCase()
   if (baseModelName.endsWith(':free')) baseModelName = baseModelName.replace(':free', '')
   if (baseModelName.endsWith('(free)')) baseModelName = baseModelName.replace('(free)', '')
   if (baseModelName.endsWith(':cloud')) baseModelName = baseModelName.replace(':cloud', '')
@@ -455,4 +451,3 @@ export const isGPT5SeriesReasoningModel = (model: Model): boolean =>
  */
 export const isOpenAIWebSearchModel = (model: Model): boolean =>
   isOpenAIModel(model) && isWebSearchModel(model)
-

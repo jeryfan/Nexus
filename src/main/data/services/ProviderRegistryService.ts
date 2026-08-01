@@ -1006,7 +1006,7 @@ class ProviderRegistryService {
    *  3. `null` — renderer falls back to the provider's `fields.byTab`.
    *
    * Used by: GET /providers/:providerId/models/:modelId/image-generation-support
-   * (greedy `:modelId` capture for HuggingFace-style ids containing `/`).
+   * (greedy `:modelId` capture for organization/model-style ids containing `/`).
    */
   getImageGenerationSupport(providerId: string, modelId: string): ImageGenerationSupport | null {
     const { presetModel, registryOverride } = this.lookupModel(providerId, modelId)

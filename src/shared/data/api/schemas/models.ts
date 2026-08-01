@@ -267,7 +267,7 @@ export type ModelSchemas = {
    * `imageGeneration` block — the renderer treats `null` as "no derived
    * fields" and falls back to the provider's own `fields.byTab`.
    *
-   * Greedy `:modelId*` preserves HuggingFace-style ids that contain `/`
+   * Greedy `:modelId*` preserves organization/model-style ids that contain `/`
    * (e.g. `Kwai-Kolors/Kolors`). Trailing static anchor follows the
    * documented middle-greedy pattern from
    * docs/references/data/api-design-guidelines.md.
@@ -281,4 +281,3 @@ export type ModelSchemas = {
     }
   }
 }
-

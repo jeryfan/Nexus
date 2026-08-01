@@ -30,7 +30,6 @@ export const COMMON_AGGREGATOR_PREFIXES = [
   'web-',
   // Platform aggregators
   'deepinfra-',
-  'groq-',
   'nvidia-',
   'sophnet-',
   // Legacy prefixes
@@ -357,4 +356,3 @@ export function normalizeModelId(
   baseName = baseName.replace(/_/g, '-')
   return baseName
 }
-

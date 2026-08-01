@@ -1,5 +1,5 @@
 import type { Model } from '@renderer/types/model'
-import type { Provider } from '@renderer/types/provider'
+import type { Provider } from '@shared/data/types/provider'
 
 import type { SerializedError } from './error'
 
@@ -54,4 +54,3 @@ export interface ModelCheckOptions {
   isConcurrent: boolean
   timeout?: number
 }
-

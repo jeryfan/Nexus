@@ -39,8 +39,7 @@ const ProviderWebsiteSchema = z.object({
 })
 
 export type OpenAIServiceTier = 'auto' | 'default' | 'flex' | 'priority' | null | undefined
-export type GroqServiceTier = 'auto' | 'on_demand' | 'flex' | undefined | null
-export type ServiceTier = OpenAIServiceTier | GroqServiceTier
+export type ServiceTier = OpenAIServiceTier
 
 export const OpenAIServiceTiers = {
   auto: 'auto',
@@ -49,22 +48,12 @@ export const OpenAIServiceTiers = {
   priority: 'priority'
 } as const
 
-export const GroqServiceTiers = {
-  auto: 'auto',
-  on_demand: 'on_demand',
-  flex: 'flex'
-} as const
-
 export function isOpenAIServiceTier(tier: string | null | undefined): tier is OpenAIServiceTier {
   return tier === null || tier === undefined || Object.hasOwn(OpenAIServiceTiers, tier)
 }
 
-export function isGroqServiceTier(tier: string | undefined | null): tier is GroqServiceTier {
-  return tier === null || tier === undefined || Object.hasOwn(GroqServiceTiers, tier)
-}
-
 export function isServiceTier(tier: string | null | undefined): tier is ServiceTier {
-  return isGroqServiceTier(tier) || isOpenAIServiceTier(tier)
+  return isOpenAIServiceTier(tier)
 }
 
 export const ApiKeyEntrySchema = z.object({
@@ -82,7 +71,7 @@ export type ApiKeyEntry = z.infer<typeof ApiKeyEntrySchema>
 export const RuntimeApiKeySchema = ApiKeyEntrySchema.omit({ key: true })
 export type RuntimeApiKey = z.infer<typeof RuntimeApiKeySchema>
 
-export const AuthTypeSchema = z.enum(['api-key', 'oauth', 'iam-azure'])
+export const AuthTypeSchema = z.enum(['api-key', 'oauth'])
 export type AuthType = z.infer<typeof AuthTypeSchema>
 
 const AuthConfigApiKey = z.object({
@@ -107,17 +96,7 @@ const AuthConfigOAuth = z.object({
   accountId: z.string().optional()
 })
 
-const AuthConfigIamAzure = z.object({
-  type: z.literal('iam-azure'),
-  apiVersion: z.string(),
-  deploymentId: z.string().optional()
-})
-
-export const AuthConfigSchema = z.discriminatedUnion('type', [
-  AuthConfigApiKey,
-  AuthConfigOAuth,
-  AuthConfigIamAzure
-])
+export const AuthConfigSchema = z.discriminatedUnion('type', [AuthConfigApiKey, AuthConfigOAuth])
 export type AuthConfig = z.infer<typeof AuthConfigSchema>
 /** The OAuth variant of {@link AuthConfig}, narrowed for token-bearing providers. */
 export type OAuthAuthConfig = Extract<AuthConfig, { type: 'oauth' }>
@@ -141,7 +120,7 @@ export const ProviderWebsitesSchema = z.object({
 export type ProviderWebsites = z.infer<typeof ProviderWebsitesSchema>
 
 export const ProviderSettingsSchema = z.object({
-  // OpenAI / Groq.
+  // OpenAI.
   //
   // PATCH semantics for these nullable override fields, applied by `ProviderService.update`'s shallow
   // merge: key absent = leave the stored value unchanged; `null` = explicitly clear the stored
@@ -157,9 +136,6 @@ export const ProviderSettingsSchema = z.object({
     })
     .optional(),
 
-  // Azure-specific
-  apiVersion: z.string().optional(),
-
   // Anthropic
   cacheControl: z
     .object({
@@ -170,7 +146,7 @@ export const ProviderSettingsSchema = z.object({
     })
     .optional(),
 
-  // Ollama / LMStudio / GPUStack
+  // Ollama
   keepAliveTime: z.number().optional(),
 
   // Common
@@ -244,7 +220,7 @@ export const ProviderSchema = z.object({
   modelListSource: z.enum(['api', 'registry']).optional(),
   /**
    * Registry capability: the provider serves requests without any credential
-   * (local server — ollama / lmstudio / ovms), so the missing-API-key
+   * (local server — Ollama), so the missing-API-key
    * guards (for example model synchronization) skip the key check. Carried
    * from the registry; absent ⇒ false.
    */
@@ -272,4 +248,3 @@ export const DEFAULT_API_FEATURES: RuntimeApiFeatures = {
 }
 
 export const DEFAULT_PROVIDER_SETTINGS: ProviderSettings = {}
-

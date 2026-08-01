@@ -29,7 +29,6 @@ const VENDOR_TO_CREATOR: Record<VendorKey, string> = {
   kimi: 'moonshot',
   deepseek: 'deepseek',
   perplexity: 'perplexity',
-  baichuan: 'baichuan',
   mimo: 'xiaomi',
   ling: 'bailing',
   minimax: 'minimax',
@@ -66,4 +65,3 @@ export function inferReasoningOwnedBy(rawModelId: string): string | undefined {
   const vendor = matchVendor(base)
   return vendor ? VENDOR_TO_CREATOR[vendor] : undefined
 }
-

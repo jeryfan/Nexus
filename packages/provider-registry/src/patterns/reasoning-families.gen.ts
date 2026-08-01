@@ -148,10 +148,6 @@ export const REASONING_FAMILY_RULES: readonly ReasoningFamilyRule[] = [
 	},
 	{ pattern: "claude-3-7-sonnet|claude-3\\.7-sonnet" },
 	{ pattern: "claude-(?:sonnet|opus|haiku)-4" },
-	// baichuan
-	{ pattern: "baichuan-m2$", budget: { min: 0, max: 30000 }, template: true },
-	{ pattern: "baichuan-m3$", budget: { min: 0, max: 30000 }, template: true },
-	{ pattern: "^baichuan-m[23]$" },
 	// bailing
 	{ pattern: "ring-(?:1t|mini|flash)" },
 	{ pattern: "^inkling" },
@@ -367,4 +363,3 @@ export const REASONING_FAMILY_RULES: readonly ReasoningFamilyRule[] = [
 	{ pattern: "glm-zero-preview" },
 	{ pattern: "glm-z1" },
 ];
-

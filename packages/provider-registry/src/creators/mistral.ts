@@ -4,7 +4,7 @@ import { defineCreator } from './types'
 export default defineCreator({
   id: 'mistral',
   name: 'Mistral AI',
-  fetchModels: openaiCompatible('mistral', 'MISTRAL_API_KEY'),
+  fetchModels: openaiCompatible('https://api.mistral.ai', 'MISTRAL_API_KEY'),
   modelsDevProviders: ['mistral'],
   reasoningFamilies: [
     { pattern: '^mistral-small-2603', effort: ['none', 'high'] },
@@ -25,4 +25,3 @@ export default defineCreator({
     'open-mixtral'
   ]
 })
-

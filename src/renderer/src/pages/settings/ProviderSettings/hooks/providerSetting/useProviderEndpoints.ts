@@ -1,5 +1,4 @@
 import type { Provider } from '@shared/data/types/provider'
-import { isAnthropicProvider } from '@shared/utils/provider'
 import { getProviderHostTopology } from '@shared/utils/providerTopology'
 import { useEffect, useRef, useState } from 'react'
 
@@ -7,7 +6,6 @@ type ProviderEndpointSnapshot = {
   providerId: string | undefined
   apiHost: string
   anthropicApiHost: string
-  apiVersion: string
 }
 
 /** Owns endpoint display state for the provider settings connection UI. */
@@ -17,16 +15,13 @@ export function useProviderEndpoints(provider: Provider | undefined) {
   const primaryEndpoint = topology.primaryEndpoint
   const providerApiHost = topology.primaryBaseUrl
   const providerAnthropicHost = topology.anthropicBaseUrl
-  const providerApiVersion = provider?.settings?.apiVersion ?? ''
 
   const [apiHost, setApiHostValue] = useState(providerApiHost)
   const [anthropicApiHost, setAnthropicApiHost] = useState(providerAnthropicHost)
-  const [apiVersion, setApiVersion] = useState(providerApiVersion)
   const previousServerEndpoint = useRef<ProviderEndpointSnapshot>({
     providerId,
     apiHost: providerApiHost,
-    anthropicApiHost: providerAnthropicHost,
-    apiVersion: providerApiVersion
+    anthropicApiHost: providerAnthropicHost
   })
 
   useEffect(() => {
@@ -39,29 +34,20 @@ export function useProviderEndpoints(provider: Provider | undefined) {
     setAnthropicApiHost((current) =>
       providerChanged || current === previous.anthropicApiHost ? providerAnthropicHost : current
     )
-    setApiVersion((current) =>
-      providerChanged || current === previous.apiVersion ? providerApiVersion : current
-    )
-
     previousServerEndpoint.current = {
       providerId,
       apiHost: providerApiHost,
-      anthropicApiHost: providerAnthropicHost,
-      apiVersion: providerApiVersion
+      anthropicApiHost: providerAnthropicHost
     }
-  }, [providerId, providerApiHost, providerAnthropicHost, providerApiVersion])
+  }, [providerId, providerApiHost, providerAnthropicHost])
 
   return {
     apiHost,
     setApiHost: setApiHostValue,
     anthropicApiHost,
     setAnthropicApiHost,
-    apiVersion,
-    setApiVersion,
     primaryEndpoint,
     providerApiHost,
-    providerAnthropicHost,
-    isAnthropicProvider: provider ? isAnthropicProvider(provider) : false
+    providerAnthropicHost
   }
 }
-

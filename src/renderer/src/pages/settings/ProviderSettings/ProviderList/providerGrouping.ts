@@ -4,8 +4,8 @@ import type { Provider } from '@shared/data/types/provider'
  * Sidebar entry produced by {@link groupProvidersByPreset}.
  *
  * `single` keeps the provider visually flat (no chevron, no folding); `group`
- * folds together ≥2 providers that share the same `presetProviderId` (e.g.
- * a user running multiple Azure OpenAI deployments). `members` is a non-empty
+ * folds together ≥2 providers that share the same `presetProviderId` (for
+ * example multiple instances created from one preset). `members` is a non-empty
  * tuple so `members[0]` is statically known to exist.
  */
 export type ProviderListEntry =
@@ -65,4 +65,3 @@ export function groupProvidersByPreset(providers: Provider[]): ProviderListEntry
 
   return entries
 }
-

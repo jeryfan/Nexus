@@ -256,7 +256,7 @@ export type ProviderSchemas = {
    * SECURITY NOTE: Runtime Provider intentionally strips authConfig (only exposes authType).
    * This endpoint is for settings pages only — never call in chat hot path.
    * Acceptable in Electron (same-process IPC, no network exposure).
-   * @example GET /providers/azure-openai/auth-config
+   * @example GET /providers/openai/auth-config
    */
   '/providers/:providerId/auth-config': {
     GET: {
@@ -304,4 +304,3 @@ export type ProviderSchemas = {
     }
   }
 } & OrderEndpoints<'/providers'>
-

@@ -1,13 +1,12 @@
 import type { Provider } from '@shared/data/types/provider'
 import {
   isAnthropicSupportedProvider,
-  isAzureOpenAIProvider,
   isOpenAICompatibleProvider,
   isSystemProvider
 } from '@shared/utils/provider'
 
 function isOpenAIOptionsProvider(provider: Provider): boolean {
-  return isOpenAICompatibleProvider(provider) || isAzureOpenAIProvider(provider)
+  return isOpenAICompatibleProvider(provider)
 }
 
 export function getProviderApiOptionsVisibility(provider: Provider) {
@@ -26,4 +25,3 @@ export function getProviderApiOptionsVisibility(provider: Provider) {
 export function hasVisibleProviderApiOptions(provider: Provider): boolean {
   return getProviderApiOptionsVisibility(provider).hasVisibleApiOptions
 }
-

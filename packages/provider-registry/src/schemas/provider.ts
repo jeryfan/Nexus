@@ -29,7 +29,7 @@ export const ApiFeaturesSchema = z.object({
 
   /** Whether the provider supports the 'developer' role (OpenAI-specific) */
   developerRole: z.boolean().default(false),
-  /** Whether the provider supports service tier selection (OpenAI/Groq-specific) */
+  /** Whether the provider supports service tier selection (OpenAI-specific) */
   serviceTier: z.boolean().default(false),
   /** Whether the provider supports verbosity settings (OpenAI-specific) */
   verbosity: z.boolean().default(false)
@@ -136,7 +136,7 @@ export const ProviderConfigSchema = z
     modelListSource: z.enum(['api', 'registry']).default('api'),
     /**
      * The provider serves requests without any credential — a local server
-     * (ollama / lmstudio / gpustack / ovms) reachable over a baseUrl with no API
+     * (for example Ollama) reachable over a baseUrl with no API
      * key. Drives the "no API key required" guards for model synchronization
      * and connection checks. A local provider still
      * needs its baseUrl input. Defaults false.
@@ -170,4 +170,3 @@ export type ProviderReasoningFormat = z.infer<typeof ProviderReasoningFormatSche
 export type RegistryEndpointConfig = z.infer<typeof RegistryEndpointConfigSchema>
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>
 export type ProviderList = z.infer<typeof ProviderListSchema>
-

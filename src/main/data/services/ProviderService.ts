@@ -40,7 +40,7 @@ import {
   DEFAULT_PROVIDER_SETTINGS,
   EndpointConfigSchema
 } from '@shared/data/types/provider'
-import { and, asc, eq, sql, type SQLWrapper } from 'drizzle-orm'
+import { and, asc, eq, inArray, sql, type SQLWrapper } from 'drizzle-orm'
 import { v4 as uuidv4 } from 'uuid'
 
 const logger = loggerService.withContext('DataApi:ProviderService')
@@ -375,6 +375,52 @@ class ProviderService {
       pkColumn: userProviderTable.providerId
     })
     return newProviders.length
+  }
+
+  /**
+   * Reconcile persisted preset ownership with the current registry whitelist.
+   * Removed canonical presets are deleted (their models cascade); user-created
+   * providers derived from a removed preset are preserved and detached.
+   */
+  reconcilePresetProvidersTx(
+    tx: Pick<DbType, 'select' | 'update' | 'delete'>,
+    activeProviderIds: readonly string[]
+  ): { removedProviderIds: string[]; detachedProviderIds: string[] } {
+    const activeIds = new Set(activeProviderIds)
+    const rows = tx
+      .select({
+        providerId: userProviderTable.providerId,
+        presetProviderId: userProviderTable.presetProviderId
+      })
+      .from(userProviderTable)
+      .all()
+
+    const removedProviderIds = rows
+      .filter((row) => row.presetProviderId === row.providerId && !activeIds.has(row.providerId))
+      .map((row) => row.providerId)
+    const detachedProviderIds = rows
+      .filter(
+        (row) =>
+          row.presetProviderId != null &&
+          row.presetProviderId !== row.providerId &&
+          !activeIds.has(row.presetProviderId)
+      )
+      .map((row) => row.providerId)
+
+    if (removedProviderIds.length > 0) {
+      tx.delete(userProviderTable)
+        .where(inArray(userProviderTable.providerId, removedProviderIds))
+        .run()
+    }
+
+    if (detachedProviderIds.length > 0) {
+      tx.update(userProviderTable)
+        .set({ presetProviderId: null })
+        .where(inArray(userProviderTable.providerId, detachedProviderIds))
+        .run()
+    }
+
+    return { removedProviderIds, detachedProviderIds }
   }
 
   /**

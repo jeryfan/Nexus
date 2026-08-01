@@ -46,14 +46,11 @@ function membershipRegex(pattern: string): RegExp {
 
 /**
  * Normalize a raw id the way the legacy gate did (`getLowerBaseModelName`):
- * lowercase, Fireworks `1p5` → `1.5`, strip the namespace prefix and the
+ * lowercase, strip the namespace prefix, and remove the
  * `:free` / `(free)` / `:cloud` listing suffixes.
  */
 function membershipBaseName(rawModelId: string): string {
-  const normalized = rawModelId.toLowerCase().startsWith('accounts/fireworks/models/')
-    ? rawModelId.replace(/(\d)p(?=\d)/g, '$1.')
-    : rawModelId
-  const lower = normalized.toLowerCase()
+  const lower = rawModelId.toLowerCase()
   let base = lower.slice(lower.lastIndexOf('/') + 1)
   if (base.endsWith(':free')) base = base.slice(0, -':free'.length)
   if (base.endsWith('(free)')) base = base.slice(0, -'(free)'.length)
@@ -73,4 +70,3 @@ export function matchReasoningMembership(
     GENERIC_REASONING_SHAPES.some((pattern) => membershipRegex(pattern).test(id))
   )
 }
-

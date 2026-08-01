@@ -1,46 +1,11 @@
 import { application } from '@application'
 import type { ProtoProviderConfig } from '@nexus/provider-registry'
-import { buildPersistedEndpointConfigs, ENDPOINT_TYPE } from '@nexus/provider-registry'
+import { buildPersistedEndpointConfigs } from '@nexus/provider-registry'
 import { RegistryLoader } from '@nexus/provider-registry/node'
 import { providerService } from '@data/services/ProviderService'
-import type { AuthConfig } from '@shared/data/types/provider'
+import { deleteProviderLogo } from '@main/services/providerLogoStore'
 
 import type { DbType, ISeeder } from '../../types'
-
-/**
- * Registry entries for azure-openai are skeletons (no defaultChatEndpoint,
- * no endpointConfigs) — they need an explicit seed value here.
- *
- * Per the v2 invariant in `ProviderSettings/utils/provider.ts` ("Azure
- * reuses other vendors' endpoint protocols, so authType is the only reliable
- * discriminator"), we deliberately do NOT introduce dedicated endpoint types like
- * `azure-openai-chat-completions`. Vendor URL routing is driven by `authType`
- * (`iam-azure` → AI SDK `createAzure`).
- *
- * `defaultChatEndpoint` here only feeds the reasoning endpoint resolution inside
- * `ProviderRegistryService.mergePresetModel`, i.e. it picks the reasoning format
- * (`openai-chat`, `gemini`, `anthropic`, ...). So the seed must match each
- * provider's wire-format reasoning shape:
- *   - Azure OpenAI runs OpenAI models → `openai-chat-completions` (openai effort)
- */
-function getSeedDefaultChatEndpoint(
-  providerId: string,
-  presetDefault: ProtoProviderConfig['defaultChatEndpoint']
-) {
-  if (providerId === 'azure-openai') {
-    return ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS
-  }
-
-  return presetDefault ?? null
-}
-
-function getSeedAuthConfig(providerId: string): AuthConfig | null {
-  if (providerId === 'azure-openai') {
-    return { type: 'iam-azure', apiVersion: '' }
-  }
-
-  return null
-}
 
 /**
  * Kimi For Coding only serves coding-agent clients and gates on `User-Agent`.
@@ -82,8 +47,8 @@ function toDbRow(p: ProtoProviderConfig) {
     presetProviderId: p.presetProviderId ?? p.id,
     name: p.name,
     endpointConfigs: buildPersistedEndpointConfigs(p.endpointConfigs),
-    defaultChatEndpoint: getSeedDefaultChatEndpoint(p.id, p.defaultChatEndpoint),
-    authConfig: getSeedAuthConfig(p.id),
+    defaultChatEndpoint: p.defaultChatEndpoint ?? null,
+    authConfig: null,
     providerSettings: getSeedProviderSettings(p.id),
     apiFeatures
   }
@@ -125,6 +90,17 @@ export class PresetProviderSeeder implements ISeeder {
 
     const rows = rawProviders.map(toDbRow)
 
-    db.transaction((tx) => providerService.batchUpsertTx(tx, rows))
+    const reconciliation = db.transaction((tx) => {
+      const result = providerService.reconcilePresetProvidersTx(
+        tx,
+        rawProviders.map((provider) => provider.id)
+      )
+      providerService.batchUpsertTx(tx, rows)
+      return result
+    })
+
+    for (const providerId of reconciliation.removedProviderIds) {
+      deleteProviderLogo(providerId)
+    }
   }
 }

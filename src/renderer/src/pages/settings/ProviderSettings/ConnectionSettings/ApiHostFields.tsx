@@ -22,42 +22,6 @@ function ApiHostEndpointButton({ onClick }: { onClick: () => void }) {
   )
 }
 
-interface AzureApiVersionFieldProps {
-  className?: string
-  apiVersion: string
-  onApiVersionChange: (value: string) => void
-  onApiVersionCommit: () => void
-}
-
-export function AzureApiVersionField({
-  className,
-  apiVersion,
-  onApiVersionChange,
-  onApiVersionCommit
-}: AzureApiVersionFieldProps) {
-  return (
-    <ProviderField
-      className={className}
-      title={'API 版本'}
-      help={
-        <div className="pt-1 text-[12px] text-foreground/55 leading-[1.35]">
-          {'Azure OpenAI 的 API 版本，如果想要使用 Response API，请输入 v1 版本'}
-        </div>
-      }
-    >
-      <InputGroup className={fieldClasses.inputGroupBlock}>
-        <InputGroupInput
-          className={fieldClasses.input}
-          value={apiVersion}
-          placeholder="2024-xx-xx-preview"
-          onChange={(event) => onApiVersionChange(event.target.value)}
-          onBlur={onApiVersionCommit}
-        />
-      </InputGroup>
-    </ProviderField>
-  )
-}
-
 interface ApiHostFieldProps {
   apiHost: string
   isApiHostResettable: boolean
@@ -233,4 +197,3 @@ export function AnthropicApiHostField({
 export function ApiHostSection({ children }: { children: React.ReactNode }) {
   return <ProviderSection>{children}</ProviderSection>
 }
-

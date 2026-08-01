@@ -3,13 +3,6 @@ import type { Provider } from '@shared/data/types/provider'
 
 import { getProviderHostTopology } from './providerTopology'
 
-// Azure reuses another vendor's endpoint protocol, so authType
-// is the only reliable discriminator (seeded skeletons may lack a distinct
-// defaultChatEndpoint). See presetProviderSeeder.ts.
-export function isAzureOpenAIProvider(provider: Provider): boolean {
-  return provider.authType === 'iam-azure'
-}
-
 export function isOllamaProvider(
   provider: Pick<Provider, 'id' | 'presetProviderId' | 'defaultChatEndpoint'>
 ): boolean {
@@ -56,21 +49,12 @@ export function isOpenAICompatibleProvider(provider: Provider): boolean {
   return (
     provider.defaultChatEndpoint === ENDPOINT_TYPE.OPENAI_CHAT_COMPLETIONS ||
     provider.defaultChatEndpoint === ENDPOINT_TYPE.OPENAI_RESPONSES ||
-    provider.presetProviderId === 'new-api' ||
-    provider.presetProviderId === 'mistral'
+    provider.presetProviderId === 'new-api'
   )
-}
-
-export function isPerplexityProvider(provider: Provider): boolean {
-  return provider.id === 'perplexity' || provider.presetProviderId === 'perplexity'
 }
 
 export function isNewApiProvider(provider: Provider): boolean {
   return matchesPreset(provider, 'new-api')
-}
-
-export function isAIGatewayProvider(provider: Provider): boolean {
-  return provider.presetProviderId === 'gateway' || provider.id === 'gateway'
 }
 
 export function isGeminiWebSearchProvider(provider: Provider): boolean {
@@ -101,12 +85,7 @@ export function isAnthropicSupportedProvider(provider: Provider): boolean {
 }
 
 export function isSupportUrlContextProvider(provider: Provider): boolean {
-  return (
-    isGeminiProvider(provider) ||
-    isAnthropicProvider(provider) ||
-    isAzureOpenAIProvider(provider) ||
-    isNewApiProvider(provider)
-  )
+  return isGeminiProvider(provider) || isAnthropicProvider(provider) || isNewApiProvider(provider)
 }
 
 export function isSupportServiceTierProvider(provider: Provider): boolean {
@@ -129,7 +108,7 @@ export function isSupportStreamOptionsProvider(provider: Provider): boolean {
   return provider.apiFeatures?.streamOptions ?? false
 }
 
-const NOT_SUPPORT_QWEN3_ENABLE_THINKING_PROVIDERS = ['ollama', 'lmstudio', 'nvidia'] as const
+const NOT_SUPPORT_QWEN3_ENABLE_THINKING_PROVIDERS = ['ollama', 'nvidia'] as const
 
 export function isSupportEnableThinkingProvider(provider: Provider): boolean {
   return !NOT_SUPPORT_QWEN3_ENABLE_THINKING_PROVIDERS.some((id) => id === provider.id)
@@ -141,21 +120,12 @@ export function hasApiKeys(provider: Provider): boolean {
 
 export function getClaudeSupportedProviders<T extends Provider>(providers: T[]): T[] {
   return providers.filter(
-    (p) =>
-      isAnthropicProvider(p) ||
-      isNewApiProvider(p) ||
-      p.id === 'openrouter' ||
-      isAzureOpenAIProvider(p)
+    (p) => isAnthropicProvider(p) || isNewApiProvider(p) || p.id === 'openrouter'
   )
 }
 
 export function isSupportAnthropicPromptCacheProvider(provider: Provider): boolean {
-  return (
-    isAnthropicProvider(provider) ||
-    isNewApiProvider(provider) ||
-    provider.id === 'openrouter' ||
-    isAzureOpenAIProvider(provider)
-  )
+  return isAnthropicProvider(provider) || isNewApiProvider(provider) || provider.id === 'openrouter'
 }
 
 /**
@@ -167,4 +137,3 @@ export function sanitizeProviderName(name: string, fallback: string): string {
   const sanitized = name.replace(/[^a-zA-Z0-9_\s.-]/g, '').replace(/\s+/g, '-')
   return sanitized || fallback
 }
-

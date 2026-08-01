@@ -4,7 +4,7 @@ import { defineCreator } from './types'
 export default defineCreator({
   id: 'baidu',
   name: 'Baidu (ERNIE)',
-  fetchModels: openaiCompatible('baidu-cloud', 'QIANFAN_API_KEY'),
+  fetchModels: openaiCompatible('https://qianfan.baidubce.com/v2', 'QIANFAN_API_KEY'),
   families: ['ernie'],
   idPrefixes: ['ernie', 'irag'],
   models: [
@@ -95,4 +95,3 @@ export default defineCreator({
     { id: 'ernie-tiny-8k', name: 'ERNIE Tiny 8K', contextWindow: 8192 }
   ]
 })
-

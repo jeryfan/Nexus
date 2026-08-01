@@ -48,7 +48,6 @@ interface UseProviderEndpointActionsParams {
   providerApiHost: string
   anthropicApiHost: string
   setAnthropicApiHost: (value: string) => void
-  apiVersion: string
   /** Registry factory-default host for the primary endpoint; '' when none. */
   defaultApiHost: string
   patchProvider: PatchProvider
@@ -63,7 +62,6 @@ export function useProviderEndpointActions({
   providerApiHost,
   anthropicApiHost,
   setAnthropicApiHost,
-  apiVersion,
   defaultApiHost,
   patchProvider
 }: UseProviderEndpointActionsParams) {
@@ -237,26 +235,6 @@ export function useProviderEndpointActions({
     [anthropicApiHost, patchProvider, provider, setAnthropicApiHost]
   )
 
-  const commitApiVersion = useCallback(async (): Promise<boolean> => {
-    if (!provider) {
-      return false
-    }
-
-    try {
-      await patchProvider({
-        providerSettings: {
-          ...provider.settings,
-          apiVersion
-        }
-      })
-      return true
-    } catch (error) {
-      logger.error('Failed to commit API version', { providerId: provider.id, error })
-      toast.error(getEndpointActionErrorMessage(error, '服务商设置保存失败'))
-      return false
-    }
-  }, [apiVersion, patchProvider, provider])
-
   const resetApiHost = useCallback(async (): Promise<boolean> => {
     if (!provider) {
       return false
@@ -285,8 +263,6 @@ export function useProviderEndpointActions({
   return {
     commitApiHost,
     commitAnthropicApiHost,
-    commitApiVersion,
     resetApiHost
   }
 }
-

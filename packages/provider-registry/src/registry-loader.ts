@@ -21,7 +21,7 @@ function readAndParse<T>(jsonPath: string, schema: { parse: (data: unknown) => T
     const data = JSON.parse(readFileSync(jsonPath, 'utf-8'))
     return schema.parse(data)
   } catch (error) {
-    throw new Error(`Failed to load registry file: ${jsonPath}`, { cause: error })
+    throw Object.assign(new Error(`Failed to load registry file: ${jsonPath}`), { cause: error })
   }
 }
 
@@ -267,4 +267,3 @@ export class RegistryLoader {
     }
   }
 }
-
