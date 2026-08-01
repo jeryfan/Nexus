@@ -35,7 +35,7 @@ const Scrollbar: FC<ScrollbarProps> = ({
     }, 1500)
   }, [clearScrollingTimeout])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // oxlint-disable-next-line react/exhaustive-deps
   const throttledInternalScrollHandler = useCallback(
     throttle(handleScroll, 100, { leading: true, trailing: true }),
     [handleScroll]
@@ -84,4 +84,3 @@ const Scrollbar: FC<ScrollbarProps> = ({
 Scrollbar.displayName = 'Scrollbar'
 
 export default Scrollbar
-

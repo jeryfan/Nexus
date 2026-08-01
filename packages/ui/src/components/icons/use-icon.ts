@@ -51,7 +51,7 @@ export function useIcon(iconRef: IconRef | undefined): CompoundIcon | undefined 
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- refKey captures the ref's identity
+    // oxlint-disable-next-line react/exhaustive-deps -- refKey captures the ref's identity
   }, [refKey])
 
   if (!iconRef) return undefined

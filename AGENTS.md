@@ -15,7 +15,7 @@
 pnpm dev          # 开发模式（Vite HMR + Electron 窗口）
 pnpm build        # 类型检查 + 构建到 out/
 pnpm typecheck    # 仅类型检查（node + web 两套 tsconfig）
-pnpm lint         # ESLint
+pnpm lint         # Oxlint
 pnpm format       # Prettier
 pnpm build:mac    # 打包 macOS 安装包（另有 build:win / build:linux）
 ```

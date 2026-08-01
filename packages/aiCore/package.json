@@ -12,8 +12,8 @@
     "dev": "tsc -w",
     "pretypecheck": "pnpm --filter @nexus/ai-sdk-provider build",
     "typecheck": "tsc --noEmit",
-    "lint": "oxlint --fix && eslint . --fix --cache",
-    "lint:check": "oxlint && eslint . --cache",
+    "lint": "pnpm --workspace-root exec oxlint packages/aiCore --fix",
+    "lint:check": "pnpm --workspace-root exec oxlint packages/aiCore",
     "format": "biome format --write && biome lint --write",
     "format:check": "biome format && biome lint",
     "clean": "rm -rf dist",
@@ -51,7 +51,6 @@
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
     "@types/node": "^22.19.1",
-    "oxlint": "^1.36.0",
     "tsdown": "^0.20.3",
     "typescript": "^5.0.0",
     "vitest": "^3.2.7"
