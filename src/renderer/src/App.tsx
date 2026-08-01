@@ -1,4 +1,7 @@
 import { useEffect } from 'react'
+import { PopupHost } from '@renderer/components/PopupHost'
+import { ThemeProvider } from '@renderer/components/ThemeProvider'
+import ToastHost from '@renderer/components/ToastHost'
 import { HomeView } from '@renderer/views/home-view'
 import { SettingsView } from '@renderer/views/settings-view'
 import { selectCurrentView, useNavigationStore } from '@renderer/stores/navigation'
@@ -18,7 +21,13 @@ function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  return view === 'settings' ? <SettingsView /> : <HomeView />
+  return (
+    <ThemeProvider>
+      {view === 'settings' ? <SettingsView /> : <HomeView />}
+      <ToastHost />
+      <PopupHost />
+    </ThemeProvider>
+  )
 }
 
 export default App

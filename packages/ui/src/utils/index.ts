@@ -1,0 +1,1 @@
+export { DIALOG_CLOSE_DURATION_MS, DIALOG_UNMOUNT_DELAY_MS } from './dialog'

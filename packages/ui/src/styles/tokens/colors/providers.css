@@ -1,0 +1,178 @@
+/**
+ * Semantic Value Providers - Light & Dark Mode
+ *
+ * Internal `--nexus-*` values that back the public semantic contract
+ * (`shadcn.css` / `product.css`). These are providers, not the public API:
+ * components consume the unprefixed contract, never these `--nexus-*` names.
+ *
+ * The canonical Nexus feedback contract lives here alongside the other
+ * providers. The frozen legacy status palette it currently draws from stays in
+ * `status-legacy.css` (shrink-only compatibility).
+ */
+
+:root {
+  /* Brand Colors */
+  --nexus-primary: var(--nexus-brand-500);
+  --nexus-primary-hover: var(--nexus-brand-300);
+  --nexus-destructive: var(--nexus-red-500);
+  --nexus-destructive-hover: var(--nexus-red-400);
+  --nexus-success: var(--nexus-green-500);
+  --nexus-warning: var(--nexus-amber-500);
+  --nexus-info: var(--nexus-blue-500);
+
+  /* Background & Foreground */
+  --nexus-background: var(--nexus-white);
+  --nexus-background-subtle: oklch(0 0 0 / 0.02);
+  --nexus-foreground: oklch(0 0 0 / 0.9);
+  --nexus-foreground-secondary: oklch(0 0 0 / 0.6);
+  --nexus-foreground-muted: oklch(0 0 0 / 0.4);
+  --nexus-muted-foreground: oklch(0.556 0 0);
+
+  /* Menu item hover/focus background — distinct from --nexus-background-subtle
+   * because menu rows need a bit more contrast than generic subtle surfaces. */
+  --nexus-menu-item-hover: oklch(0 0 0 / 0.04);
+
+  /* Card & Popover */
+  --nexus-card: var(--nexus-white);
+  --nexus-popover: var(--nexus-white);
+
+  /* Border */
+  --nexus-border: oklch(0 0 0 / 0.1);
+  --nexus-border-muted: oklch(0 0 0 / 0.06);
+  --nexus-border-subtle: oklch(0 0 0 / 0.04);
+  --nexus-border-hover: oklch(0 0 0 / 0.2);
+  --nexus-border-active: oklch(0 0 0 / 0.3);
+  --nexus-border-strong: var(--nexus-border-hover);
+
+  /* Ring (Focus) */
+  --nexus-ring: color-mix(in srgb, var(--nexus-primary) 40%, transparent);
+
+  /* UI Element Colors */
+  --nexus-secondary: oklch(0 0 0 / 0.05); /* Secondary Button Background */
+  --nexus-secondary-hover: oklch(0 0 0 / 0.1);
+  --nexus-secondary-active: oklch(0 0 0 / 0.15);
+  --nexus-muted: oklch(0 0 0 / 0.05); /* Muted/Subtle Background */
+  --nexus-accent: oklch(0 0 0 / 0.05); /* Accent Background */
+  --nexus-ghost-hover: oklch(0 0 0 / 0.05); /* Ghost Button Hover */
+  --nexus-ghost-active: oklch(0 0 0 / 0.1); /* Ghost Button Active */
+
+  /* Sidebar */
+  --nexus-sidebar: oklch(0.9672 0 0);
+  --nexus-sidebar-accent: oklch(0.97 0 0);
+
+  /* Surface-paired foregrounds */
+  --nexus-card-foreground: oklch(0.145 0 0);
+  --nexus-popover-foreground: oklch(0.145 0 0);
+  --nexus-secondary-foreground: oklch(0.205 0 0);
+  --nexus-accent-foreground: oklch(0.205 0 0);
+
+  /* Foregrounds used on solid colored fills */
+  --nexus-primary-foreground: oklch(0.985 0 0);
+  --nexus-destructive-foreground: var(--nexus-white);
+
+  /* Input border */
+  --nexus-input: oklch(0.922 0 0);
+
+  /* Sidebar sub-palette */
+  --nexus-sidebar-foreground: oklch(0.145 0 0);
+  --nexus-sidebar-primary: oklch(0.205 0 0);
+  --nexus-sidebar-primary-foreground: oklch(0.985 0 0);
+  --nexus-sidebar-accent-foreground: oklch(0.205 0 0);
+  --nexus-sidebar-border: oklch(0.922 0 0);
+  --nexus-sidebar-ring: oklch(0.708 0 0);
+
+  /* Canonical Nexus feedback contract.
+   * Base intents are defined above; subtle/border pairs draw from the frozen
+   * legacy status palette in status-legacy.css during migration. */
+  --nexus-error: var(--nexus-error-base);
+  --nexus-error-subtle: var(--nexus-error-bg);
+  --nexus-error-subtle-foreground: var(--nexus-error-text);
+
+  --nexus-success-subtle: var(--nexus-success-bg);
+  --nexus-success-subtle-foreground: var(--nexus-green-800);
+  --nexus-success-border: var(--nexus-green-200);
+
+  --nexus-warning-subtle: var(--nexus-warning-bg);
+  --nexus-warning-subtle-foreground: var(--nexus-amber-800);
+  --nexus-warning-border: var(--nexus-amber-200);
+
+  --nexus-info-subtle: var(--nexus-info-bg);
+  --nexus-info-subtle-foreground: var(--nexus-blue-800);
+  --nexus-info-border: var(--nexus-blue-200);
+}
+
+/* Dark Mode */
+.dark {
+  --nexus-success: var(--nexus-green-400);
+  --nexus-warning: var(--nexus-amber-400);
+  --nexus-info: var(--nexus-blue-400);
+
+  /* Background & Foreground */
+  --nexus-background: oklch(0.209 0 0 / 0.55);
+  --nexus-background-subtle: oklch(1 0 0 / 0.02);
+  --nexus-foreground: oklch(1 0 0 / 0.9);
+  --nexus-foreground-secondary: oklch(1 0 0 / 0.6);
+  --nexus-foreground-muted: oklch(1 0 0 / 0.4);
+  --nexus-muted-foreground: oklch(0.708 0 0);
+
+  /* Menu item hover/focus background (dark) — see comment in :root. */
+  --nexus-menu-item-hover: oklch(1 0 0 / 0.06);
+
+  /* Card & Popover */
+  --nexus-card: var(--nexus-neutral-900);
+  --nexus-popover: var(--nexus-black);
+
+  /* Border */
+  --nexus-border: oklch(1 0 0 / 0.1);
+  --nexus-border-muted: oklch(1 0 0 / 0.08);
+  --nexus-border-subtle: oklch(1 0 0 / 0.05);
+  --nexus-border-hover: oklch(1 0 0 / 0.2);
+  --nexus-border-active: oklch(1 0 0 / 0.3);
+
+  /* Ring (Focus) - 保持不变 */
+  --nexus-ring: oklch(0.76 0.204 131 / 0.4);
+
+  /* UI Element Colors - Dark Mode */
+  --nexus-secondary: oklch(1 0 0 / 0.1); /* Secondary Button Background */
+  --nexus-secondary-hover: oklch(1 0 0 / 0.2);
+  --nexus-secondary-active: oklch(1 0 0 / 0.25);
+  --nexus-muted: oklch(1 0 0 / 0.1); /* Muted/Subtle Background */
+  --nexus-accent: oklch(1 0 0 / 0.1); /* Accent Background */
+  --nexus-ghost-hover: oklch(1 0 0 / 0.1); /* Ghost Button Hover */
+  --nexus-ghost-active: oklch(1 0 0 / 0.15); /* Ghost Button Active */
+
+  /* Sidebar */
+  --nexus-sidebar: oklch(0.2393 0 0);
+  --nexus-sidebar-accent: oklch(0.269 0 0);
+
+  /* Surface-paired foregrounds */
+  --nexus-card-foreground: oklch(0.985 0 0);
+  --nexus-popover-foreground: oklch(0.985 0 0);
+  --nexus-secondary-foreground: oklch(0.985 0 0);
+  --nexus-accent-foreground: oklch(0.985 0 0);
+
+  /* Foregrounds used on solid colored fills */
+  --nexus-primary-foreground: oklch(0.205 0 0);
+  --nexus-destructive-foreground: var(--nexus-white);
+
+  /* Input border */
+  --nexus-input: oklch(0.269 0 0);
+
+  /* Sidebar sub-palette */
+  --nexus-sidebar-foreground: oklch(0.985 0 0);
+  --nexus-sidebar-primary: oklch(0.488 0.243 264.376);
+  --nexus-sidebar-primary-foreground: oklch(0.985 0 0);
+  --nexus-sidebar-accent-foreground: oklch(0.985 0 0);
+  --nexus-sidebar-border: oklch(0.269 0 0);
+  --nexus-sidebar-ring: oklch(0.439 0 0);
+
+  /* Canonical Nexus feedback contract */
+  --nexus-success-subtle-foreground: var(--nexus-green-100);
+  --nexus-success-border: var(--nexus-green-700);
+
+  --nexus-warning-subtle-foreground: var(--nexus-amber-100);
+  --nexus-warning-border: var(--nexus-amber-700);
+
+  --nexus-info-subtle-foreground: var(--nexus-blue-100);
+  --nexus-info-border: var(--nexus-blue-700);
+}

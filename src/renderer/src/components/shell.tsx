@@ -46,7 +46,8 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    // nexus index.css 将 #root 设为 flex-row，Shell 作为其 flex item 需 flex-1 撑满宽度
+    <div className="flex h-screen min-w-0 flex-1 overflow-hidden">
       {/* 左侧边栏：折叠时宽度归零，内容随过渡动画滑出 */}
       <aside
         className="h-full shrink-0 overflow-hidden"

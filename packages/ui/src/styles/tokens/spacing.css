@@ -1,0 +1,23 @@
+/**
+ * Spacing & Sizing
+ * 间距与尺寸
+ */
+
+:root {
+  --nexus-size-5xs: 0.25rem; /* 4px */
+  --nexus-size-4xs: 0.5rem; /* 8px */
+  --nexus-size-3xs: 0.75rem; /* 12px */
+  --nexus-size-2xs: 1rem; /* 16px */
+  --nexus-size-xs: 1.5rem; /* 24px */
+  --nexus-size-sm: 2rem; /* 32px */
+  --nexus-size-md: 2.5rem; /* 40px */
+  --nexus-size-lg: 3rem; /* 48px */
+  --nexus-size-xl: 3.5rem; /* 56px */
+  --nexus-size-2xl: 4rem; /* 64px */
+  --nexus-size-3xl: 4.5rem; /* 72px */
+  --nexus-size-4xl: 5rem; /* 80px */
+  --nexus-size-5xl: 5.5rem; /* 88px */
+  --nexus-size-6xl: 6rem; /* 96px */
+  --nexus-size-7xl: 6.5rem; /* 104px */
+  --nexus-size-8xl: 7rem; /* 112px */
+}

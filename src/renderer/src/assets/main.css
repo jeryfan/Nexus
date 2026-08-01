@@ -134,3 +134,9 @@
 body[data-overlay-open] .app-drag {
   -webkit-app-region: no-drag;
 }
+
+#root {
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+}

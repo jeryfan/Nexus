@@ -1,8 +1,26 @@
 {
   "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
-  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*"],
+  "include": ["electron.vite.config.*", "src/main/**/*", "src/preload/**/*", "src/shared/**/*"],
   "compilerOptions": {
     "composite": true,
-    "types": ["electron-vite/node"]
-  }
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": true,
+    "types": ["electron-vite/node"],
+    "baseUrl": ".",
+    "paths": {
+      "@main/*": ["src/main/*"],
+      "@application": ["src/main/core/application/Application"],
+      "@data/*": ["src/main/data/*"],
+      "@logger": ["src/main/core/logger/LoggerService"],
+      "@shared/*": ["src/shared/*"],
+      "@nexus/ai-core/provider": ["packages/aiCore/src/core/providers"],
+      "@nexus/ai-core": ["packages/aiCore/src"],
+      "@nexus/ai-core/*": ["packages/aiCore/src/*"],
+      "@nexus/ai-sdk-provider": ["packages/ai-sdk-provider/src"],
+      "@nexus/provider-registry/node": ["packages/provider-registry/src/registry-loader"],
+      "@nexus/provider-registry": ["packages/provider-registry/src"]
+    }
+  },
+  "exclude": ["src/**/__tests__/**/*", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { ArrowLeft, Palette, Search, Settings2 } from 'lucide-react'
+import { ArrowLeft, Bot, Palette, Search, Settings2 } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 import { Shell } from '@renderer/components/shell'
+import ProviderSettingsPage from '@renderer/pages/settings/ProviderSettings/ProviderSettingsPage'
 import { useNavigationStore } from '@renderer/stores/navigation'
 
 // 设置分组占位：具体设置项后续随功能添加
 const SECTIONS = [
+  { id: 'model-services', label: '模型服务', icon: Bot },
   { id: 'general', label: '常规', icon: Settings2 },
   { id: 'appearance', label: '外观', icon: Palette }
 ] as const
@@ -15,7 +17,7 @@ type SectionId = (typeof SECTIONS)[number]['id']
 /** 设置视图：与首页共用 Shell，边栏为 返回应用 + 搜索 + 分组导航 */
 function SettingsView(): React.JSX.Element {
   const goBack = useNavigationStore((state) => state.goBack)
-  const [active, setActive] = useState<SectionId>('general')
+  const [active, setActive] = useState<SectionId>('model-services')
   const [query, setQuery] = useState('')
 
   const sections = SECTIONS.filter((section) => section.label.includes(query.trim()))
@@ -76,9 +78,15 @@ function SettingsView(): React.JSX.Element {
       }
     >
       {/* 右侧内容：设置项后续随功能添加（交互控件需单独标注 app-no-drag，否则会遮挡窗口拖拽区） */}
-      <div className="h-full overflow-y-auto px-10 py-8">
-        <h1 className="text-xl font-semibold">{activeSection?.label}</h1>
-      </div>
+      {active === 'model-services' ? (
+        <div className="app-no-drag h-full min-h-0 overflow-hidden">
+          <ProviderSettingsPage />
+        </div>
+      ) : (
+        <div className="h-full overflow-y-auto px-10 py-8">
+          <h1 className="text-xl font-semibold">{activeSection?.label}</h1>
+        </div>
+      )}
     </Shell>
   )
 }

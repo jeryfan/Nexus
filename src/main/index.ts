@@ -1,7 +1,25 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { application } from '@application'
+import { AiService } from '@main/ai/AiService'
+import { loggerService } from '@logger'
+import { CacheService } from '@main/data/CacheService'
+import { DataApiService } from '@main/data/DataApiService'
+import { DbService } from '@main/data/db/DbService'
+import { PresetProviderSeeder } from '@main/data/db/seeding/seeders/presetProviderSeeder'
+import { IpcApiService } from '@main/ipc/IpcApiService'
+import { registerNativeCommandMenu } from '@main/ipc/nativeCommandMenu'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
+
+const logger = loggerService.withContext('MainEntry')
+
+let dbService: DbService | undefined
+let cacheService: CacheService | undefined
+let dataApiService: DataApiService | undefined
+let ipcApiService: IpcApiService | undefined
+let aiService: AiService | undefined
+let disposeNativeCommandMenu: (() => void) | undefined
 
 function createWindow(): void {
   // Create the browser window.
@@ -50,7 +68,9 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+async function startApp(): Promise<void> {
+  await app.whenReady()
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
@@ -61,14 +81,27 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   // 查询窗口当前是否处于全屏
   ipcMain.handle('window:is-fullscreen', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     return win ? win.isFullScreen() : false
   })
+
+  dbService = new DbService()
+  cacheService = new CacheService()
+  dataApiService = new DataApiService()
+  ipcApiService = new IpcApiService()
+  aiService = new AiService()
+
+  application.set('DbService', dbService)
+  application.set('CacheService', cacheService)
+  application.set('AiService', aiService)
+
+  new PresetProviderSeeder().run(dbService.getDb())
+  dataApiService.initialize()
+  ipcApiService.initialize()
+  aiService.initialize()
+  disposeNativeCommandMenu = registerNativeCommandMenu()
 
   createWindow()
 
@@ -77,6 +110,20 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+}
+
+startApp().catch((error) => {
+  logger.error('Fatal startup error', error as Error)
+  app.quit()
+})
+
+app.on('will-quit', () => {
+  aiService?.dispose()
+  disposeNativeCommandMenu?.()
+  ipcApiService?.dispose()
+  dataApiService?.dispose()
+  cacheService?.dispose()
+  dbService?.close()
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

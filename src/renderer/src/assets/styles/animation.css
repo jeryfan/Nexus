@@ -1,0 +1,60 @@
+/* 旋转动画 */
+@keyframes animation-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animation-rotate {
+  transform-origin: center;
+  animation: animation-rotate 0.75s linear infinite;
+}
+
+/* 定位高亮动画 */
+@keyframes animation-locate-highlight {
+  0% {
+    background-color: transparent;
+  }
+  10% {
+    background-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+  70% {
+    background-color: color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.animation-locate-highlight {
+  animation: animation-locate-highlight 2.5s ease-in-out;
+}
+
+@keyframes animation-provider-model-pull-guide {
+  0% {
+    transform: translate3d(-6px, -50%, 0);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate3d(0, -50%, 0);
+    opacity: 1;
+  }
+  70% {
+    transform: translate3d(-4px, -50%, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -50%, 0);
+    opacity: 0;
+  }
+}
+
+.animation-provider-model-pull-guide {
+  animation: animation-provider-model-pull-guide 1.2s ease-in-out both;
+}

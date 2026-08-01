@@ -1,0 +1,66 @@
+/**
+ * Nexus product semantics.
+ *
+ * Product semantics share the unprefixed public namespace with the official
+ * Shadcn contract. Internal Nexus value providers remain under
+ * `--nexus-*`, while feature-local and historical migration values stay outside
+ * this public runtime contract.
+ */
+
+:root {
+  /* Shared product semantics */
+  --background-subtle: var(--nexus-background-subtle);
+  --border-subtle: var(--nexus-border-subtle);
+  --border-strong: var(--nexus-border-strong);
+
+  /* Feedback */
+  --success: var(--nexus-success);
+  --success-subtle: var(--nexus-success-subtle);
+  --success-subtle-foreground: var(--nexus-success-subtle-foreground);
+  --success-border: var(--nexus-success-border);
+  --warning: var(--nexus-warning);
+  --warning-subtle: var(--nexus-warning-subtle);
+  --warning-subtle-foreground: var(--nexus-warning-subtle-foreground);
+  --warning-border: var(--nexus-warning-border);
+  --info: var(--nexus-info);
+  --info-subtle: var(--nexus-info-subtle);
+  --info-subtle-foreground: var(--nexus-info-subtle-foreground);
+  --info-border: var(--nexus-info-border);
+  --error: var(--nexus-error);
+  --error-subtle: var(--nexus-error-subtle);
+  --error-subtle-foreground: var(--nexus-error-subtle-foreground);
+  --error-border: var(--nexus-error-border);
+
+  /* Stable product domain: rich text and code */
+  --code-block: #e3e3e3;
+  --inline-code: rgba(0, 0, 0, 0.06);
+  --inline-code-foreground: rgb(218, 97, 92);
+
+  /* Stable product domain: references and search highlights */
+  --reference: #cfe1ff;
+  --reference-foreground: #000;
+  --reference-subtle: #f1f7ff;
+  --highlight-foreground: var(--foreground);
+  --highlight: var(--nexus-amber-50);
+  --highlight-accent: var(--nexus-amber-100);
+
+  /* Stable product domain: user-message surface */
+  --chat-user: rgba(0, 0, 0, 0.045);
+}
+
+.dark {
+  /* Stable product domain: rich text and code */
+  --code-block: #323232;
+  --inline-code: #323232;
+
+  /* Stable product domain: references and search highlights */
+  --reference: #404040;
+  --reference-foreground: #fff;
+  --reference-subtle: #0b0e12;
+  --highlight-foreground: var(--foreground);
+  --highlight: var(--nexus-amber-900);
+  --highlight-accent: var(--nexus-amber-800);
+
+  /* Stable product domain: user-message surface */
+  --chat-user: rgba(255, 255, 255, 0.08);
+}
