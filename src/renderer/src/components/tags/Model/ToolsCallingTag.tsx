@@ -22,4 +22,3 @@ export const ToolsCallingTag = ({ size = 12, showTooltip, showLabel, ...restProp
     </CustomTag>
   )
 }
-

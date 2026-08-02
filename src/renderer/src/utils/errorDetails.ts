@@ -52,4 +52,3 @@ export function formatErrorDetails(error: unknown): string {
     .join('\n')
   return detailedError.message ? detailedError.message : `Error Details:\n${formattedJson}`
 }
-

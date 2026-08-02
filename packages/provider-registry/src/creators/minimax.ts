@@ -7,4 +7,3 @@ export default defineCreator({
   idPrefixes: ['minimax', 'abab'],
   reasoningFamilies: [{ pattern: 'minimax-m\\d' }]
 })
-

@@ -38,8 +38,6 @@
  *   performed, so a canonicalized path keeps the exact bytes the OS handed us
  *   and still reaches the real file on normalization-sensitive filesystems
  *   (Linux ext4/btrfs), where an NFC-rewritten path would not exist on disk.
- *   See `docs/references/file/file-manager-architecture.md §1.2 "Rejected:
- *   Unicode (NFC) normalization of externalPath"`.
  *
  * The input **must already be absolute**. POSIX absolute (`/…`) and Windows
  * absolute (`X:\…` or `X:/…`) are both accepted; mixed-platform input is
@@ -63,10 +61,8 @@
  * **Rule**: modifying this function ≡ ship a paired Drizzle migration that
  * re-canonicalizes every `origin='external'` row in the same PR. The only
  * current exemption is that v2 has not shipped, so no such rows exist yet; it
- * expires with the first release. See
- * `docs/references/file/file-manager-architecture.md §1.2 "Rule-evolution
- * discipline"` for the full procedure (row merging, atomicity, cache
- * invalidation).
+ * expires with the first release. The paired migration must handle row
+ * merging, atomicity, and cache invalidation.
  */
 
 import { AbsoluteFilePathSchema } from '@shared/types/file'
@@ -141,8 +137,7 @@ export const CanonicalFilePathSchema = AbsoluteFilePathSchema.refine(
  * Practical consequence for call sites: `canonicalizeFilePath(x)` on a value
  * already typed `AbsoluteFilePath` can still throw. Code that must stay total
  * has to handle that — see `accessiblePath.ts`, where containment degrades to
- * "not contained" rather than propagating. See
- * `docs/references/file/file-manager-architecture.md §1.2 "UNC paths"`.
+ * "not contained" rather than propagating.
  */
 export type CanonicalFilePath = z.infer<typeof CanonicalFilePathSchema>
 
@@ -186,10 +181,8 @@ function canonicalizeWindows(raw: string): string {
   // Drive letter is uppercased so `C:\Foo` and `c:\Foo` canonicalize to the
   // same string at the byte layer — case folding the path itself is
   // deliberately deferred: case-insensitive dedup is handled by the DB
-  // `lower(externalPath)` unique index plus an `fs.realpath` collision probe
-  // (see docs/references/file/file-manager-architecture.md §1.2
-  // "Duplicate-entry detection on insert"), so no per-segment case-fold is
-  // needed here.
+  // `lower(externalPath)` unique index plus an `fs.realpath` collision probe,
+  // so no per-segment case-fold is needed here.
   const drive = raw.slice(0, 2).toUpperCase()
   const segments = raw.slice(3).split(/[/\\]/)
   const stack: string[] = []

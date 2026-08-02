@@ -2,9 +2,7 @@ import { platform } from '@renderer/utils/platform'
 import type { ContextReader, ContextValue } from '@shared/types/command'
 import { createContext, use, useEffect } from 'react'
 
-export type RendererCommandContextKey =
-  | 'platform'
-  | 'input.composing'
+export type RendererCommandContextKey = 'platform' | 'input.composing'
 
 export type RegisterContextKey = (key: RendererCommandContextKey, value: ContextValue) => () => void
 
@@ -32,4 +30,3 @@ export function useCommandContextKey(key: RendererCommandContextKey, value: Cont
     return register?.(key, value)
   }, [key, register, value])
 }
-

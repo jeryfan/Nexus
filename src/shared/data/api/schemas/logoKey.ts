@@ -20,4 +20,3 @@ export const LogoKeySchema = z
     (v) => !/^(data:|file:|https?:)/i.test(v),
     'logo key must not be a data:, file:, or http(s): ref'
   )
-

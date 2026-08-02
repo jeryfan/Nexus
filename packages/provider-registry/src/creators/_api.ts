@@ -2,8 +2,8 @@
  * Shared helpers for a creator's `fetchModels()` — built on `@ai-sdk/provider-utils`. The connection
  * host comes from the typed `src/providers` registry (the single source of truth for endpoints): a
  * first-party creator passes its Nexus provider id and we reuse that provider's `baseUrl` — no duplicated
- * URLs. Reading the source (not the generated `data/providers.json`) keeps the generator buildable from
- * a clean checkout where `data/` hasn't been generated yet. Creators with no Nexus provider pass a full
+ * URLs. Reading the source (not the generated `resources/provider/providers.json`) keeps the generator buildable from
+ * a clean checkout where `resources/provider/` hasn't been generated yet. Creators with no Nexus provider pass a full
  * `https://…` base instead. Runs at generation time only.
  */
 import {
@@ -103,4 +103,3 @@ export function cohereModels(keyEnv = 'COHERE_API_KEY') {
       pick: (r) => r.models.map((m) => m.name)
     })
 }
-

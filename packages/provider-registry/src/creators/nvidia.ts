@@ -8,4 +8,3 @@ export default defineCreator({
   idPrefixes: ['nemotron', 'nemoretriever', 'parakeet', 'llama-3-1-nemotron'],
   reasoningFamilies: [{ pattern: 'nemotron-(?:nano|super|ultra|3-(?:nano|super|ultra))' }]
 })
-

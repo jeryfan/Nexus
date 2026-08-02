@@ -1,7 +1,7 @@
 /**
  * Creator registry — the ONLY hand-maintained source for the model catalog.
  *
- * `data/models.json` is generated (see `scripts/generate-catalog.ts`): each creator supplies its model
+ * `resources/provider/models.json` is generated (see `scripts/generate-catalog.ts`): each creator supplies its model
  * LIST (from its own API and/or hand-written entries), and metadata is enriched from
  * models.dev/OpenRouter. You never edit `models.json` by hand — add/override in a creator here instead.
  */
@@ -65,4 +65,3 @@ export interface Creator {
 export function defineCreator(creator: Creator): Creator {
   return creator
 }
-

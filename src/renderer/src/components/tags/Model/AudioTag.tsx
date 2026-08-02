@@ -22,4 +22,3 @@ export const AudioTag = ({ size = 12, showTooltip, showLabel, ...restProps }: Pr
     </CustomTag>
   )
 }
-

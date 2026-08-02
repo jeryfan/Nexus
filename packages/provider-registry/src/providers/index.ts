@@ -21,7 +21,7 @@ import type { Provider } from './types'
 import p_zai from './zai'
 import p_zhipu from './zhipu'
 
-/** Every provider, in registry order. Source of truth for data/providers.json + data/provider-models.json. */
+/** Every provider, in registry order. Source of truth for resources/provider/providers.json + resources/provider/provider-models.json. */
 export const PROVIDERS: Provider[] = [
   p_silicon,
   p_zhipu,

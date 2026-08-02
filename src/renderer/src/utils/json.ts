@@ -28,4 +28,3 @@ export function parseJSON(str: string): any | null {
     return null
   }
 }
-

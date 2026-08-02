@@ -29,9 +29,7 @@
  * Primary axis: **which subsystem does the caller want in the loop?** The
  * entry system (FileManager, versionCache, DanglingCache) or just raw FS
  * (`@main/utils/file/*`). This is a call-site choice, not an intrinsic file property — the
- * same physical file can be reached either way. See
- * [architecture.md](../../../../docs/references/file/architecture.md) for the
- * full decision matrix. Quick rules:
+ * same physical file can be reached either way. Quick rules:
  *
  * - Accept `FileHandle` when the operation is meaningful regardless of which
  *   subsystem the caller picked (read / open / getMetadata / most IPC). The

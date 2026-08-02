@@ -19,11 +19,7 @@ import { OpenAICompatibleRerankingModel } from '@nexus/ai-sdk-provider'
 export const NEWAPI_PROVIDER_NAME = 'newapi' as const
 
 export type NewApiEndpointType =
-  | 'openai'
-  | 'openai-response'
-  | 'anthropic'
-  | 'gemini'
-  | 'jina-rerank'
+  'openai' | 'openai-response' | 'anthropic' | 'gemini' | 'jina-rerank'
 
 export interface NewApiProviderSettings {
   apiKey?: string

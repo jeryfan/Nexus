@@ -2,10 +2,7 @@ import { loggerService } from '@logger'
 import { DIAGNOSTICS_ENABLED, SLOW_THRESHOLD_MS } from '@main/core/diagnostics'
 import { validateSender } from '@main/core/security/validateSender'
 import { IpcError, IpcErrorCode, type IpcResult } from '@shared/ipc/errors/IpcError'
-import {
-  type IpcRequestSchemas,
-  ipcRequestSchemas
-} from '@shared/ipc/schemas/ipcSchemas'
+import { type IpcRequestSchemas, ipcRequestSchemas } from '@shared/ipc/schemas/ipcSchemas'
 import type { IpcContext } from '@shared/ipc/types'
 import { IpcChannel } from '@shared/IpcChannel'
 import { BrowserWindow, ipcMain, type IpcMainInvokeEvent } from 'electron'

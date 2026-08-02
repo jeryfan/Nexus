@@ -1,5 +1,5 @@
 // Built-in provider whitelist. Keep this in the same order as
-// packages/provider-registry/data/providers.json.
+// resources/provider/providers.json.
 
 import * as z from 'zod'
 

@@ -130,4 +130,3 @@ export function ModelTag({
 
   return <TagComponent size={size} showTooltip={showTooltip} showLabel={showLabel} {...restProps} />
 }
-

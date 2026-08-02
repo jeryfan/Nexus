@@ -34,7 +34,4 @@ import type { ProviderSchemas } from './providers'
  * 1. Create the schema file
  * 2. Import and add to intersection below
  */
-export type ApiSchemas = AssertValidSchemas<
-  ModelSchemas & ProviderSchemas
->
-
+export type ApiSchemas = AssertValidSchemas<ModelSchemas & ProviderSchemas>

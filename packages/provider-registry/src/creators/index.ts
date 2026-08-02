@@ -1,6 +1,6 @@
 /**
  * The creator registry — the single hand-maintained source for the model catalog.
- * One file per creator; `data/models.json` is generated from these (scripts/generate-catalog.ts).
+ * One file per creator; `resources/provider/models.json` is generated from these (scripts/generate-catalog.ts).
  * Never edit models.json by hand.
  */
 import ai21 from './ai21'

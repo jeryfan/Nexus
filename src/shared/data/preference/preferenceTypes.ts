@@ -31,4 +31,3 @@ export enum ThemeMode {
 }
 
 export type ProxyMode = 'system' | 'custom' | 'none'
-

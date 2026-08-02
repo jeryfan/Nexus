@@ -23,4 +23,3 @@ export type PublicBootConfigKey = Exclude<BootConfigKey, InternalBootConfigKey>
 export type BootConfigPreferenceKeys = {
   [K in PublicBootConfigKey as `BootConfig.${K & string}`]: BootConfigSchema[K]
 }
-

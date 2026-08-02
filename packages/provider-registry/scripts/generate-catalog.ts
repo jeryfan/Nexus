@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 /**
- * Generate `data/models.json` + `data/provider-models.json` from the hand-maintained registries
+ * Generate `resources/provider/models.json` + `resources/provider/provider-models.json` from the hand-maintained registries
  * (`src/creators/` + `src/providers/`), enriched with models.dev / OpenRouter metadata. Both JSON files are
  * PURE ARTIFACTS — never hand-edit them.
  *
@@ -47,9 +47,13 @@ import {
 } from './upstream'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const MODELS_PATH = process.env.MODELS_OUT || path.join(__dirname, '../data/models.json')
-const PROVIDERS_PATH = path.join(__dirname, '../data/providers.json')
-const PROVIDER_MODELS_PATH = path.join(__dirname, '../data/provider-models.json')
+const MODELS_PATH =
+  process.env.MODELS_OUT || path.join(__dirname, '../../../resources/provider/models.json')
+const PROVIDERS_PATH = path.join(__dirname, '../../../resources/provider/providers.json')
+const PROVIDER_MODELS_PATH = path.join(
+  __dirname,
+  '../../../resources/provider/provider-models.json'
+)
 const REASONING_FAMILIES_GEN_PATH = path.join(
   __dirname,
   '../src/patterns/reasoning-families.gen.ts'

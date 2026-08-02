@@ -1,11 +1,7 @@
 import { providerService } from '@data/services/ProviderService'
 import type { LogoImageIntent } from '@shared/ipc/schemas/entityImage'
 
-import {
-  deleteProviderLogo,
-  readProviderLogo,
-  writeProviderLogo
-} from './providerLogoStore'
+import { deleteProviderLogo, readProviderLogo, writeProviderLogo } from './providerLogoStore'
 
 /**
  * Provider / mini-app set-logo orchestration: from a set-logo intent + raw bytes

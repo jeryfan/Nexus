@@ -12,4 +12,3 @@ export async function copyApiKeyToClipboard(apiKey: string): Promise<void> {
     toast.error('复制失败')
   }
 }
-

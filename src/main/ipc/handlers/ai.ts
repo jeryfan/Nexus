@@ -25,7 +25,5 @@ export const aiHandlers: IpcHandlersFor<typeof aiRequestSchemas> = {
   'ai.provider.model.list': (request) =>
     exposeAiError('ai.provider.model.list', () => application.get('AiService').listModels(request)),
   'ai.provider.model.check': (request) =>
-    exposeAiError('ai.provider.model.check', () =>
-      application.get('AiService').checkModel(request)
-    )
+    exposeAiError('ai.provider.model.check', () => application.get('AiService').checkModel(request))
 }

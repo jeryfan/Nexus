@@ -57,4 +57,3 @@ export function modeWire(
 
   return profile as ReasoningWireProfile
 }
-

@@ -42,4 +42,3 @@ export const ipcApi = {
     callback: (payload: EventPayload<E>) => void
   ): (() => void) => window.api.ipcApi.on(event, callback as (payload: unknown) => void)
 }
-

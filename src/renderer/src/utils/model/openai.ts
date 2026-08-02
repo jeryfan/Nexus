@@ -38,4 +38,3 @@ export const isSupportVerbosityModel = isGPT5FamilyModel
 
 export const isOpenAIDeepResearchModel = (model?: Model): boolean =>
   model ? sharedIsOpenAIDeepResearchModel(model) : false
-

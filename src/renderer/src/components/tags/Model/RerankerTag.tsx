@@ -22,4 +22,3 @@ export const RerankerTag = ({ size = 12, showTooltip, showLabel = true, ...restP
     </CustomTag>
   )
 }
-

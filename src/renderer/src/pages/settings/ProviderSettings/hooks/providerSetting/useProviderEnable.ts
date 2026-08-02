@@ -26,4 +26,3 @@ export function useProviderEnable(providerId: string) {
     toggleProviderEnabled
   }
 }
-

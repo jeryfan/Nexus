@@ -110,4 +110,3 @@ export {
   inferReasoningMembership,
   inferReasoningOwnedBy
 } from './patterns/reasoning-heuristics'
-

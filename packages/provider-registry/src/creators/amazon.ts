@@ -8,4 +8,3 @@ export default defineCreator({
   idPrefixes: ['nova', 'titan'],
   reasoningFamilies: [{ pattern: '^nova-2' }]
 })
-

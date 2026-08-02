@@ -19,4 +19,3 @@ export {
   type GroupedVirtualListProps,
   type GroupedVirtualListRow
 } from './GroupedVirtualList'
-

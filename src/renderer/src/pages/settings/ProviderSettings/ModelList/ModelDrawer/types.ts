@@ -52,4 +52,3 @@ export interface ModelClassificationState {
   capabilities: Set<ModelCapabilityToggle>
   inputModalities: Set<ModelInputModality>
 }
-

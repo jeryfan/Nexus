@@ -145,4 +145,3 @@ const ConfirmActionPopup = createPopup<ConfirmActionParams, boolean>(PopupContai
 })
 
 export default ConfirmActionPopup
-

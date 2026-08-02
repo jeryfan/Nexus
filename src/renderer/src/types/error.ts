@@ -370,4 +370,3 @@ export const isSerializedAiSdkErrorUnion = (
     isSerializedAiSdkUnsupportedFunctionalityError(error)
   )
 }
-

@@ -110,4 +110,3 @@ export default function ProviderListItemWithContextMenu({
     </CommandContextMenu>
   )
 }
-

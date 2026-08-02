@@ -711,4 +711,3 @@ export const convertImageToPng = async (blob: Blob): Promise<Blob> => {
     img.src = url
   })
 }
-

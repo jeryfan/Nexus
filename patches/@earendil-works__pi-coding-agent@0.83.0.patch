@@ -1,0 +1,14 @@
+diff --git a/package.json b/package.json
+index c7d8c8b41dbeaf4a551d479b713bb03d7bdf3422..65d43b5fa6409ea010c2ef09374d7b3787251412 100644
+--- a/package.json
++++ b/package.json
+@@ -4,7 +4,8 @@
+ 	"description": "Coding agent CLI with read, bash, edit, write tools and session management",
+ 	"type": "module",
+ 	"piConfig": {
+-		"configDir": ".pi"
++		"name": "nexus",
++		"configDir": ".nexus"
+ 	},
+ 	"bin": {
+ 		"pi": "dist/cli.js"

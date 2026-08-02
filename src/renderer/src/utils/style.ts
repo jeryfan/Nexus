@@ -207,4 +207,3 @@ export function getForegroundColor(backgroundColor: HexColor): HexColor {
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-

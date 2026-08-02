@@ -27,4 +27,3 @@ const warning = (props: ConfirmPopupProps): Promise<boolean> =>
  * `error`, `info` and `warning` collide with `window.confirm`, `catch (error)`, etc.
  */
 export const popup = { confirm, error, info, warning }
-

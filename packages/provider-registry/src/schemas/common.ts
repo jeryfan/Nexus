@@ -60,4 +60,3 @@ export type StringRange = z.infer<typeof StringRangeSchema>
 export type ZodCurrency = z.infer<typeof ZodCurrencySchema>
 export type PricePerToken = z.infer<typeof PricePerTokenSchema>
 export type Metadata = z.infer<typeof MetadataSchema>
-

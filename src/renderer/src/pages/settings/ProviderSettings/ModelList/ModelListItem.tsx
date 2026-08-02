@@ -107,4 +107,3 @@ const ModelListItem: React.FC<ModelListItemProps> = ({
 }
 
 export default memo(ModelListItem)
-

@@ -8,4 +8,3 @@ export default defineCreator({
   families: ['palmyra'],
   idPrefixes: ['palmyra']
 })
-

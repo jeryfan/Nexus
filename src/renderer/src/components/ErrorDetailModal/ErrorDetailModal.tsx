@@ -179,8 +179,7 @@ const AiSdkErrorBase = memo(({ error }: { error: SerializedAiSdkError }) => {
       {cause && (
         <ErrorDetailItem>
           <ErrorDetailLabel>
-            {'错误原因'}:
-            {truncatedCause.truncated && <TruncatedBadge>{'已截断'}</TruncatedBadge>}
+            {'错误原因'}:{truncatedCause.truncated && <TruncatedBadge>{'已截断'}</TruncatedBadge>}
           </ErrorDetailLabel>
           <CodeBlock>{displayedCause}</CodeBlock>
         </ErrorDetailItem>
@@ -189,24 +188,22 @@ const AiSdkErrorBase = memo(({ error }: { error: SerializedAiSdkError }) => {
   )
 })
 
-const TruncatedCodeBlock = memo(
-  ({ value, label }: { value: string; label: string }) => {
-    const { content, truncated, isLikelyBase64 } = truncateLargeData(value)
+const TruncatedCodeBlock = memo(({ value, label }: { value: string; label: string }) => {
+  const { content, truncated, isLikelyBase64 } = truncateLargeData(value)
 
-    return (
-      <ErrorDetailItem>
-        <ErrorDetailLabel>
-          {label}:{truncated && <TruncatedBadge>{'已截断'}</TruncatedBadge>}
-        </ErrorDetailLabel>
-        {isLikelyBase64 ? (
-          <ErrorDetailValue>{content}</ErrorDetailValue>
-        ) : (
-          <CodeBlock>{formatStructuredText(content)}</CodeBlock>
-        )}
-      </ErrorDetailItem>
-    )
-  }
-)
+  return (
+    <ErrorDetailItem>
+      <ErrorDetailLabel>
+        {label}:{truncated && <TruncatedBadge>{'已截断'}</TruncatedBadge>}
+      </ErrorDetailLabel>
+      {isLikelyBase64 ? (
+        <ErrorDetailValue>{content}</ErrorDetailValue>
+      ) : (
+        <CodeBlock>{formatStructuredText(content)}</CodeBlock>
+      )}
+    </ErrorDetailItem>
+  )
+})
 
 const AiSdkError = memo(({ error }: { error: SerializedAiSdkErrorUnion }) => {
   return (
@@ -470,9 +467,7 @@ const AiSdkError = memo(({ error }: { error: SerializedAiSdkErrorUnion }) => {
 
 // --- Main Content Component ---
 
-const ErrorDetailContent: React.FC<ErrorDetailContentProps> = ({
-  error
-}) => {
+const ErrorDetailContent: React.FC<ErrorDetailContentProps> = ({ error }) => {
   const copyErrorDetails = useCallback(() => {
     if (!error) {
       return
@@ -509,9 +504,7 @@ const ErrorDetailContent: React.FC<ErrorDetailContentProps> = ({
 
   return (
     <>
-      <ErrorDetailContainer>
-        {renderErrorDetails(error)}
-      </ErrorDetailContainer>
+      <ErrorDetailContainer>{renderErrorDetails(error)}</ErrorDetailContainer>
       <div className="my-2 mt-4 flex justify-end gap-2">
         <Button variant="outline" onClick={copyErrorDetails}>
           <Copy size={14} />
@@ -533,4 +526,3 @@ export function showErrorDetailPopup(params: ErrorDetailContentProps) {
 
 export { ErrorDetailContent }
 export type { ErrorDetailContentProps }
-

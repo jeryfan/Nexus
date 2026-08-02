@@ -38,4 +38,3 @@ export function getModelLogoRef(
   }
   return resolveModelIconRef(id) ?? resolveModelIconRef(name)
 }
-

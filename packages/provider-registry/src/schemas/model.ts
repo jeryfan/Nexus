@@ -445,4 +445,3 @@ export type ImageGenerationSupport = z.infer<typeof ImageGenerationSupportSchema
 export type ModelPricing = z.infer<typeof ModelPricingSchema>
 export type ModelConfig = z.infer<typeof ModelConfigSchema>
 export type ModelList = z.infer<typeof ModelListSchema>
-

@@ -34,7 +34,9 @@ type ModelData = { models: Array<{ id: string; ownedBy: string }> }
 type ProviderModelData = { overrides: Array<{ modelId: string; providerId: string }> }
 
 function readRegistryData<T>(fileName: string): T {
-  return JSON.parse(readFileSync(new URL(`../data/${fileName}`, import.meta.url), 'utf8')) as T
+  return JSON.parse(
+    readFileSync(new URL(`../../../resources/provider/${fileName}`, import.meta.url), 'utf8')
+  ) as T
 }
 
 const providerData = readRegistryData<ProviderData>('providers.json')

@@ -30,8 +30,4 @@ export const DashScopeExtension = ProviderExtension.create({
   create: createDashScopeProvider
 } as const satisfies ProviderExtensionConfig<DashScopeProviderSettings, ProviderV3, 'dashscope'>)
 
-export const extensions = [
-  OllamaExtension,
-  NewApiExtension,
-  DashScopeExtension
-] as const
+export const extensions = [OllamaExtension, NewApiExtension, DashScopeExtension] as const

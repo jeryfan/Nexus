@@ -12,4 +12,3 @@ export default defineCreator({
   ],
   webSearch: ['sonar']
 })
-

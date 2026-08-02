@@ -22,4 +22,3 @@ export const WebSearchTag = ({ size = 12, showTooltip, showLabel, ...restProps }
     </CustomTag>
   )
 }
-

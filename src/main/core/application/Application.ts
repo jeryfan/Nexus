@@ -1,6 +1,12 @@
 import { app } from 'electron'
 import { join } from 'node:path'
 
+/** 随包分发的只读内容：dev 指向仓库 resources/，packaged 指向 extraResources 拷贝。 */
+function shippedResources(...segments: string[]): string {
+  const base = app.isPackaged ? process.resourcesPath : join(app.getAppPath(), 'resources')
+  return join(base, ...segments)
+}
+
 class Application {
   private readonly services = new Map<string, unknown>()
 
@@ -31,9 +37,12 @@ class Application {
         base = join(app.getPath('userData'), 'provider-logos')
         break
       case 'feature.provider_registry.data':
-        base = app.isPackaged
-          ? join(process.resourcesPath, 'provider-registry')
-          : join(app.getAppPath(), 'packages/provider-registry/data')
+        // @nexus/provider-registry `pnpm generate` 的生成产物（resources/provider/）
+        base = shippedResources('provider')
+        break
+      case 'resources.agent':
+        // Nexus 自有 agent 资源（resources/agent/）：提示词规则、内置包清单
+        base = shippedResources('agent')
         break
       default:
         throw new Error(`Unknown application path: ${key}`)

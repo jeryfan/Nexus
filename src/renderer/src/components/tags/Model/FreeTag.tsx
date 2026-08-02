@@ -22,4 +22,3 @@ export const FreeTag = ({ size = 12, showTooltip, showLabel = true, ...restProps
     </CustomTag>
   )
 }
-

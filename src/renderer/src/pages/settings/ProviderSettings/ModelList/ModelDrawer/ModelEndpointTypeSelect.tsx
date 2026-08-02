@@ -52,4 +52,3 @@ export function ModelEndpointTypeSelect({ value, onChange }: ModelEndpointTypeSe
     />
   )
 }
-

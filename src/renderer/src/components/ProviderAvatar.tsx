@@ -84,4 +84,3 @@ export const ProviderAvatarPrimitive: React.FC<ProviderAvatarPrimitiveProps> = (
     </Avatar>
   )
 }
-

@@ -7,4 +7,3 @@
  * - `all` (default): every provider
  */
 export type ProviderFilterMode = 'enabled' | 'disabled' | 'all'
-

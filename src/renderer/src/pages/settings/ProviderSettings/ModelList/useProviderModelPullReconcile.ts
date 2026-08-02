@@ -64,8 +64,8 @@ export function useProviderModelPullReconcile(providerId: string) {
       models
         .filter(
           (model) =>
-            (remoteModelIds.has(model.id) ||
-              (model.presetModelId != null && model.presetModelId !== ''))
+            remoteModelIds.has(model.id) ||
+            (model.presetModelId != null && model.presetModelId !== '')
         )
         .map((model) => model.id),
     [models, remoteModelIds]
@@ -185,7 +185,7 @@ export function useProviderModelPullReconcile(providerId: string) {
       }
 
       try {
-          await deleteModels(uniqueIds)
+        await deleteModels(uniqueIds)
       } catch (error) {
         logger.error('Failed to remove provider models from manage drawer', {
           providerId,
@@ -243,4 +243,3 @@ export function useProviderModelPullReconcile(providerId: string) {
     isBusy: isLoadingModels || isCreating || isDeleting || isBulkDeleting || isReconciling
   }
 }
-

@@ -21,4 +21,3 @@ export function isRerankModel(model: Model): boolean {
   if (!model) return false
   return sharedIsRerankModel(model)
 }
-

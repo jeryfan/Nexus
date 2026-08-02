@@ -12,14 +12,13 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate": "tsx scripts/generate-catalog.ts --write && prettier --write data/models.json data/provider-models.json data/providers.json src/patterns/reasoning-families.gen.ts",
+    "generate": "tsx scripts/generate-catalog.ts --write && prettier --write ../../resources/provider/models.json ../../resources/provider/provider-models.json ../../resources/provider/providers.json src/patterns/reasoning-families.gen.ts",
     "generate:check": "tsx scripts/generate-catalog.ts --report"
   },
   "author": "Nexus",
   "license": "MIT",
   "files": [
-    "dist/**/*",
-    "data/**/*"
+    "dist/**/*"
   ],
   "exports": {
     ".": {

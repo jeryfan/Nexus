@@ -194,4 +194,3 @@ const MemoizedGroupedVirtualList = memo(GroupedVirtualList) as <
 ) => React.ReactElement
 
 export default MemoizedGroupedVirtualList
-

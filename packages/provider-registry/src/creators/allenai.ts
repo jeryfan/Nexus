@@ -6,4 +6,3 @@ export default defineCreator({
   families: ['allenai'],
   idPrefixes: ['olmo', 'allenai', 'tulu', 'molmo']
 })
-

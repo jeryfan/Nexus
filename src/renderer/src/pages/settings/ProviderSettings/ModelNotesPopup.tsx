@@ -82,4 +82,3 @@ const PopupContainer: FC<Props> = ({ providerId, open, resolve }) => {
 const ModelNotesPopup = createPopup<ShowParams, any>(PopupContainer, { dismissResult: {} })
 
 export default ModelNotesPopup
-

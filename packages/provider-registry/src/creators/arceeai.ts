@@ -6,4 +6,3 @@ export default defineCreator({
   families: ['trinity'],
   idPrefixes: ['trinity', 'afm', 'arcee']
 })
-

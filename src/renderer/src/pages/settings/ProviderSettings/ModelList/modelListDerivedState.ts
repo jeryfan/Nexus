@@ -185,4 +185,3 @@ export const calculateModelListDerivedState = ({
     modelStatusMap: new Map(modelStatuses.map((status) => [status.model.id, status]))
   }
 }
-

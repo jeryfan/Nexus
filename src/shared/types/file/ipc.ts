@@ -461,10 +461,9 @@ export interface FileIpcApi {
    * **⚠️ UX label warning**: the literal name `permanentDelete` is misleading
    * for the external-entry branch, where nothing is "permanently deleted"
    * on disk. UI surfaces MUST choose the user-facing label per
-   * `(handle.kind, origin)` — see the UX labeling convention table in
-   * `docs/references/file/architecture.md §3.4` before wiring this call
-   * into a button. Failing to differentiate results in either (a) user
-   * expects disk deletion and files a bug report, or (b) user avoids the
+   * `(handle.kind, origin)` before wiring this call into a button. Failing
+   * to differentiate results in either (a) user expects disk deletion and
+   * files a bug report, or (b) user avoids the
    * action fearing data loss and accumulates dangling library entries.
    *
    * @phase 2 — wired in Batch 0 (`IpcChannel.File_PermanentDelete` →

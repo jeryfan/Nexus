@@ -20,4 +20,3 @@ export function normalizeModelGroupName(
 export function getModelGroupLabel(groupName: string): string {
   return groupName === UNGROUPED_MODEL_GROUP_KEY ? '未分组' : groupName
 }
-

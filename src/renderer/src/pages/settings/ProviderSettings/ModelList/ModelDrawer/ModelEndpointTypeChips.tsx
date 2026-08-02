@@ -48,4 +48,3 @@ export function ModelEndpointTypeChips({ value, onChange }: ModelEndpointTypeChi
     </div>
   )
 }
-

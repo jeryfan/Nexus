@@ -68,11 +68,7 @@ export interface RegisteredKeybindingRule<TCommand extends string = string> exte
 
 export type MenuPresentationMode = 'native' | 'nexus'
 
-export type MenuLocation =
-  | 'app.menu'
-  | 'tray.menu'
-  | 'webcontents.context'
-  | 'command.palette'
+export type MenuLocation = 'app.menu' | 'tray.menu' | 'webcontents.context' | 'command.palette'
 
 export interface MenuContribution<TCommand extends string = string> {
   location: MenuLocation

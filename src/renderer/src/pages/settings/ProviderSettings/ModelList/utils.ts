@@ -41,4 +41,3 @@ export const getDuplicateProviderSettingModelNames = <T extends Pick<Model, 'nam
       .map(([name]) => name)
   )
 }
-

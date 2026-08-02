@@ -22,4 +22,3 @@ export const ReasoningTag = ({ size = 12, showTooltip, showLabel, ...restProps }
     </CustomTag>
   )
 }
-

@@ -16,4 +16,3 @@ export function useProviderDelete() {
 
   return { deleteProvider }
 }
-

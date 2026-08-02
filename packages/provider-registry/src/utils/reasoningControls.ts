@@ -49,4 +49,3 @@ export function deriveLegacyReasoningFields(
     defaultEffort: effort?.default
   }
 }
-

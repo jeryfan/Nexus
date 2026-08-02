@@ -16,4 +16,3 @@ export const ThemeContext = createContext<ThemeContextType>({
 })
 
 export const useTheme = () => use(ThemeContext)
-

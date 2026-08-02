@@ -1,6 +1,5 @@
 /**
- * Endpoint + AI SDK provider id resolution. See
- * `docs/references/ai/adapter-family.md` for design rationale.
+ * Endpoint + AI SDK provider id resolution.
  */
 
 import type { Model } from '@shared/data/types/model'

@@ -23,11 +23,7 @@ import {
 } from '@shared/data/types/model'
 import type { Provider } from '@shared/data/types/provider'
 import { formatApiHost, withoutTrailingSlash } from '@shared/utils/api'
-import {
-  isGeminiProvider,
-  isOllamaProvider,
-  matchesPreset
-} from '@shared/utils/provider'
+import { isGeminiProvider, isOllamaProvider, matchesPreset } from '@shared/utils/provider'
 import { SystemProviderIds } from '@shared/utils/systemProviderId'
 import * as z from 'zod'
 

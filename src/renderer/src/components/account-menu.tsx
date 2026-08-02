@@ -11,7 +11,7 @@ import {
 } from '@renderer/components/ui/dropdown-menu'
 import { useNavigationStore } from '@renderer/stores/navigation'
 
-/** 边栏底部账户入口：暂无用户系统，展示"本地账户"占位，菜单内提供设置入口 */
+/** 边栏底部账户入口：本地账户（无登录态），菜单提供设置 */
 function AccountMenu(): React.JSX.Element {
   const [open, setOpen] = useState(false)
   const navigate = useNavigationStore((state) => state.navigate)
@@ -36,7 +36,7 @@ function AccountMenu(): React.JSX.Element {
           className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-sidebar-accent"
         >
           <CircleUserRound className="size-4 text-muted-foreground" />
-          本地账户
+          <span className="min-w-0 flex-1 truncate text-left">本地账户</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-56">

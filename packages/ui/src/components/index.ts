@@ -1,4 +1,9 @@
-export { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './primitives/accordion'
+export {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger
+} from './primitives/accordion'
 export { Alert } from './primitives/alert'
 export { Avatar, AvatarFallback, AvatarImage } from './primitives/avatar'
 export { Badge } from './primitives/badge'

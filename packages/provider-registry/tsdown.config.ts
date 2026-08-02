@@ -14,4 +14,3 @@ export default defineConfig({
   dts: true,
   tsconfig: 'tsconfig.json'
 })
-

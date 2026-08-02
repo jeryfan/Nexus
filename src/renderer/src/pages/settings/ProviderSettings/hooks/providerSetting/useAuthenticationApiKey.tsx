@@ -15,4 +15,3 @@ export function useAuthenticationApiKey() {
 
   return value
 }
-

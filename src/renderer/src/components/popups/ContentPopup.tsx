@@ -91,4 +91,3 @@ const PopupContainer = ({
 const ContentPopup = createPopup<ContentPopupParams, void>(PopupContainer)
 
 export default ContentPopup
-

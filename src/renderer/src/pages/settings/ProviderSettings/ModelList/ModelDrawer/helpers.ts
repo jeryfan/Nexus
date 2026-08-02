@@ -224,4 +224,3 @@ export function areModelClassificationsEqual(
     [...left.inputModalities].every((modality) => right.inputModalities.has(modality))
   )
 }
-

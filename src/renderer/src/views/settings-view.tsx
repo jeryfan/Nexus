@@ -1,13 +1,15 @@
 import { useState } from 'react'
-import { ArrowLeft, Bot, Palette, Search, Settings2 } from 'lucide-react'
+import { ArrowLeft, Bot, Palette, Puzzle, Search, Settings2 } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 import { Shell } from '@renderer/components/shell'
+import PluginSettingsPage from '@renderer/pages/settings/PluginSettings/PluginSettingsPage'
 import ProviderSettingsPage from '@renderer/pages/settings/ProviderSettings/ProviderSettingsPage'
 import { useNavigationStore } from '@renderer/stores/navigation'
 
 // 设置分组占位：具体设置项后续随功能添加
 const SECTIONS = [
   { id: 'model-services', label: '模型服务', icon: Bot },
+  { id: 'agent', label: '插件', icon: Puzzle },
   { id: 'general', label: '常规', icon: Settings2 },
   { id: 'appearance', label: '外观', icon: Palette }
 ] as const
@@ -81,6 +83,10 @@ function SettingsView(): React.JSX.Element {
       {active === 'model-services' ? (
         <div className="app-no-drag h-full min-h-0 overflow-hidden">
           <ProviderSettingsPage />
+        </div>
+      ) : active === 'agent' ? (
+        <div className="app-no-drag h-full min-h-0 overflow-hidden">
+          <PluginSettingsPage />
         </div>
       ) : (
         <div className="h-full overflow-y-auto px-10 py-8">

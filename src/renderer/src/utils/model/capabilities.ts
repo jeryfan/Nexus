@@ -157,4 +157,3 @@ export const ZHIPU_RESULT_TOKENS = ['<|begin_of_box|>', '<|end_of_box|>'] as con
 export const agentModelFilter = (model: Model): boolean => {
   return !isEmbeddingModel(model) && !isRerankModel(model) && !isTextToImageModel(model)
 }
-

@@ -335,4 +335,3 @@ export const isValidShortcut = (binding: ShortcutBinding): boolean => {
 
   return (hasModifier && hasNonModifier) || isSpecialKey
 }
-

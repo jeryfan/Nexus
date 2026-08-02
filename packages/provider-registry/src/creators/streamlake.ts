@@ -5,4 +5,3 @@ export default defineCreator({
   name: 'StreamLake (KAT)',
   idPrefixes: ['kat-coder', 'kat']
 })
-

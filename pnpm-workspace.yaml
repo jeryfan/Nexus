@@ -2,12 +2,18 @@ packages:
   - 'packages/*'
 
 allowBuilds:
+  # pi-coding-agent 引入的可选构建脚本，SDK 路径不需要，显式禁止
+  '@google/genai': false
   better-sqlite3: true
   electron: true
   electron-winstaller: false
   esbuild: true
+  protobufjs: false
+
+patchedDependencies:
+  '@earendil-works/pi-coding-agent@0.83.0': patches/@earendil-works__pi-coding-agent@0.83.0.patch
 
 # electron-vite 5.0.0 官方 peer 仅声明到 vite ^7，本项目强制使用 vite 8
 peerDependencyRules:
   allowedVersions:
-    vite: "8"
+    vite: '8'

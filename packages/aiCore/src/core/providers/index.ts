@@ -46,7 +46,4 @@ export {
 // Extension Registry
 export { ExtensionRegistry, extensionRegistry } from './core/ExtensionRegistry'
 export type { ProviderVariant } from './types'
-export type {
-  ProviderId,
-  RegisteredProviderId
-} from './types'
+export type { ProviderId, RegisteredProviderId } from './types'

@@ -260,14 +260,14 @@ export function useCache<K extends UseCacheKey>(
  * ```typescript
  * // Fixed key
  * const [enabled, setEnabled] = useSharedCache('internal.shared_cache_flag')
-*
+ *
  * // Template key (schema: 'internal.shared_cache_text.${id}')
  * const [label, setLabel] = useSharedCache('internal.shared_cache_text.provider-a')
-*
-* // Changes automatically sync to all open windows
+ *
+ * // Changes automatically sync to all open windows
  * setLabel('ready')
-*
-* // Functional update — resolved against this window's latest local value
+ *
+ * // Functional update — resolved against this window's latest local value
  * setEnabled((prev) => !prev)
  * ```
  *
@@ -589,11 +589,11 @@ const readSharedKey = (key: string): unknown =>
  * ```typescript
  * function useProgressById(ids: readonly string[]): Record<string, number> {
  *   const uniqueIds = useMemo(() => Array.from(new Set(ids)).sort(), [ids])
-*   return useSharedCacheSelector(
+ *   return useSharedCacheSelector(
  *     uniqueIds.map((id) => `internal.shared_cache_progress.${id}` as const),
  *     (values) => Object.fromEntries(uniqueIds.map((id, i) => [id, values[i]?.progress ?? 0]))
-*   )
-* }
+ *   )
+ * }
  * ```
  */
 export function useSharedCacheSelector<const Keys extends readonly SharedCacheKey[], Selection>(
@@ -619,11 +619,11 @@ export function useSharedCacheSelector<const Keys extends readonly SharedCacheKe
  * const [providerId, setProviderId] = usePersistCache(
  *   'settings.provider.last_selected_provider_id'
  * )
-*
-* // Automatically saved and synced across all windows
+ *
+ * // Automatically saved and synced across all windows
  * setProviderId('anthropic')
-*
-* // Functional update — resolved against the latest persisted value
+ *
+ * // Functional update — resolved against the latest persisted value
  * setProviderId((prev) => prev ?? 'openai')
  * ```
  *

@@ -22,4 +22,3 @@ export const VisionTag = ({ size = 12, showTooltip, showLabel, ...restProps }: P
     </CustomTag>
   )
 }
-

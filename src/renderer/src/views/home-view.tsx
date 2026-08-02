@@ -1,20 +1,16 @@
 import { Shell } from '@renderer/components/shell'
-import { AccountMenu } from '@renderer/components/account-menu'
+import { AgentRuntimeProvider } from '@renderer/features/agent/AgentRuntimeProvider'
+import { AgentPage } from '@renderer/features/agent/AgentPage'
+import { AgentSidebar } from '@renderer/features/agent/AgentSidebar'
 
-/** 首页视图：边栏菜单暂为空，底部为账户/设置入口 */
+/** 首页视图：主侧边栏承载会话历史（新会话 + 列表 + 账户），内容为 Agent 对话页 */
 function HomeView(): React.JSX.Element {
   return (
-    <Shell
-      sidebar={
-        <>
-          {/* 菜单区域：暂为空 */}
-          <div className="flex-1" />
-          <div className="p-2">
-            <AccountMenu />
-          </div>
-        </>
-      }
-    />
+    <AgentRuntimeProvider>
+      <Shell sidebar={<AgentSidebar />}>
+        <AgentPage />
+      </Shell>
+    </AgentRuntimeProvider>
   )
 }
 

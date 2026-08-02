@@ -46,4 +46,3 @@ const ModelTagsWithLabel: FC<ModelTagsProps> = ({
 }
 
 export default memo(ModelTagsWithLabel)
-

@@ -356,4 +356,3 @@ export function serializeHealthCheckError(error: unknown): SerializedError {
     stack: null
   }
 }
-

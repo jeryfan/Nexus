@@ -268,9 +268,8 @@ export type ModelSchemas = {
    * fields" and falls back to the provider's own `fields.byTab`.
    *
    * Greedy `:modelId*` preserves organization/model-style ids that contain `/`
-   * (e.g. `Kwai-Kolors/Kolors`). Trailing static anchor follows the
-   * documented middle-greedy pattern from
-   * docs/references/data/api-design-guidelines.md.
+   * (e.g. `Kwai-Kolors/Kolors`). The trailing static segment anchors the
+   * middle-greedy match (see `ApiServer.extractPathParams`).
    *
    * @example GET /providers/silicon/models/Kwai-Kolors/Kolors/image-generation-support
    */

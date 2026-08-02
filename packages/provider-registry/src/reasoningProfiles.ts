@@ -100,4 +100,3 @@ const formatProfiles = {
 
 export const REASONING_FORMAT_PROFILES: Record<ReasoningFormatType, ReasoningFormatWireProfile> =
   formatProfiles
-

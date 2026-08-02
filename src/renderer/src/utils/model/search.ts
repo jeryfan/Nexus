@@ -124,4 +124,3 @@ export function getSearchMatchScore(keywords: string, fields: ModelSearchField[]
 
   return totalScore
 }
-

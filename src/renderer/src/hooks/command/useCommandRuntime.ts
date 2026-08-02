@@ -74,4 +74,3 @@ export function useCommandShortcutPreferences(): Partial<
 export function useCommandMenuPresentationMode(): MenuPresentationMode | undefined {
   return use(CommandSharedPreferencesContext)?.menuPresentationMode
 }
-

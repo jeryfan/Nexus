@@ -6,4 +6,3 @@ export default defineCreator({
   families: ['cogito'],
   idPrefixes: ['cogito']
 })
-

@@ -51,4 +51,3 @@ export function useResolvedCommandMenu(location: MenuLocation): ResolvedMenuMode
     [context, location, runtime, shortcutPreferences]
   )
 }
-

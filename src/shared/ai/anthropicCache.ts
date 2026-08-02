@@ -27,4 +27,3 @@ export function resolveAnthropicCacheSettings(
     cacheLastNMessages: settings?.cacheLastNMessages ?? ANTHROPIC_CACHE_DEFAULT_LAST_N_MESSAGES
   }
 }
-

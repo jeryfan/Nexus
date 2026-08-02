@@ -20,4 +20,3 @@ export const ModelSyncPreviewResponseSchema = z.strictObject({
   missing: z.array(ModelSyncPreviewMissingItemSchema)
 })
 export type ModelSyncPreviewResponse = z.infer<typeof ModelSyncPreviewResponseSchema>
-

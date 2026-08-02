@@ -22,4 +22,3 @@ export const EmbeddingTag = ({ size = 12, showTooltip, showLabel = true, ...rest
     </CustomTag>
   )
 }
-

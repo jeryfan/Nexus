@@ -6,4 +6,3 @@ export interface ApiKeysData {
 }
 
 export type PatchProvider = (updates: UpdateProviderDto) => Promise<unknown>
-

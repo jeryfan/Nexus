@@ -8,4 +8,3 @@ export default defineCreator({
   idPrefixes: ['mercury'],
   reasoningFamilies: [{ pattern: '^mercury-2' }]
 })
-

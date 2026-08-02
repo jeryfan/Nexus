@@ -10,4 +10,3 @@ import { LogoKeySchema } from './logoKey'
  */
 export const CreateLogoSchema = z.strictObject({ kind: z.literal('key'), key: LogoKeySchema })
 export type CreateLogoInput = z.infer<typeof CreateLogoSchema>
-

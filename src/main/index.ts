@@ -7,6 +7,8 @@ import { DataApiService } from '@main/data/DataApiService'
 import { DbService } from '@main/data/db/DbService'
 import { PresetProviderSeeder } from '@main/data/db/seeding/seeders/presetProviderSeeder'
 import { IpcApiService } from '@main/ipc/IpcApiService'
+import { runPiSmoke } from '@main/agent/piSmoke'
+import { AgentService } from '@main/agent'
 import { registerNativeCommandMenu } from '@main/ipc/nativeCommandMenu'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { join } from 'path'
@@ -19,6 +21,7 @@ let cacheService: CacheService | undefined
 let dataApiService: DataApiService | undefined
 let ipcApiService: IpcApiService | undefined
 let aiService: AiService | undefined
+let agentService: AgentService | undefined
 let disposeNativeCommandMenu: (() => void) | undefined
 
 function createWindow(): void {
@@ -97,11 +100,29 @@ async function startApp(): Promise<void> {
   application.set('CacheService', cacheService)
   application.set('AiService', aiService)
 
+  agentService = new AgentService(cacheService)
+  application.set('AgentService', agentService)
+  // 异步初始化不阻塞窗口创建；失败时 agent 路由优雅降级
+  void agentService.initialize()
+
   new PresetProviderSeeder().run(dbService.getDb())
   dataApiService.initialize()
   ipcApiService.initialize()
   aiService.initialize()
   disposeNativeCommandMenu = registerNativeCommandMenu()
+
+  // US-001 packaging/rebrand smoke: NEXUS_PI_SMOKE=1 pnpm dev（或打包产物同环境变量启动）
+  if (process.env.NEXUS_PI_SMOKE === '1') {
+    void runPiSmoke()
+  }
+  // US-003/006 集成冒烟：NEXUS_AGENT_SMOKE=1
+  if (process.env.NEXUS_AGENT_SMOKE === '1') {
+    void import('@main/agent/agentSmoke').then((m) => m.runAgentSmoke())
+  }
+  // M1 包管理/内置包冒烟：NEXUS_PACKAGE_SMOKE=1
+  if (process.env.NEXUS_PACKAGE_SMOKE === '1') {
+    void import('@main/agent/packageSmoke').then((m) => m.runPackageSmoke())
+  }
 
   createWindow()
 
@@ -118,6 +139,7 @@ startApp().catch((error) => {
 })
 
 app.on('will-quit', () => {
+  agentService?.dispose()
   aiService?.dispose()
   disposeNativeCommandMenu?.()
   ipcApiService?.dispose()

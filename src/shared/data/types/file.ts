@@ -7,7 +7,7 @@
  * - **FileRef** — the association linking a business entity (chat message,
  *   painting, temp session) to a `FileEntry`.
  *
-* ## FileEntry
+ * ## FileEntry
  *
  * Zod schemas for runtime validation of FileEntry records.
  * FileEntry is a flat list of Nexus-managed files (no tree structure).
@@ -293,7 +293,7 @@ export type ExternalFileEntry = z.infer<typeof ExternalEntrySchema>
  * Not persisted in DB. Queried at runtime via File IPC
  * `getDanglingState` / `batchGetDanglingStates` — DataApi never exposes dangling
  * because it requires FS IO (cold-path `fs.stat`) which violates the DataApi
- * SQL-only boundary. See [file-manager-architecture.md §11](../../../../docs/references/file/file-manager-architecture.md).
+ * SQL-only boundary.
  */
 export const DanglingStateSchema = z.enum(['present', 'missing', 'unknown'])
 export type DanglingState = z.infer<typeof DanglingStateSchema>

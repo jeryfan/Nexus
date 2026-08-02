@@ -189,4 +189,3 @@ export function objectValues<T extends Record<string, string | number>>(
 ): [T[keyof T], ...T[keyof T][]] {
   return Object.values(obj) as [T[keyof T], ...T[keyof T][]]
 }
-

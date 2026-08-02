@@ -108,4 +108,3 @@ export interface ModelCheckOptions {
   timeout?: number
   signal?: AbortSignal
 }
-

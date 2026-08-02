@@ -90,18 +90,19 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
       </aside>
 
       {/* 右侧内容区：折叠后在顶部显示控制按钮 */}
-      <main className="app-drag relative h-full min-w-0 flex-1 bg-background">
+      {/* flex-col + 内容包裹层 min-h-0 flex-1：避免控制条(h-12)与 h-full 子内容叠加溢出 48px */}
+      <main className="app-drag relative flex h-full min-w-0 flex-1 flex-col bg-background">
         {collapsed && (
           <div
             className={cn(
-              'flex h-12 items-center transition-[padding]',
+              'flex h-12 shrink-0 items-center transition-[padding]',
               isFullscreen ? 'pl-3' : 'pl-[84px]'
             )}
           >
             <WindowControls />
           </div>
         )}
-        {children}
+        <div className="min-h-0 flex-1">{children}</div>
       </main>
     </div>
   )

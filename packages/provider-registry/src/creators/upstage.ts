@@ -9,4 +9,3 @@ export default defineCreator({
   idPrefixes: ['solar'],
   reasoningFamilies: [{ pattern: '^solar-pro-?[23]' }]
 })
-

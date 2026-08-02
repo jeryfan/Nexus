@@ -39,4 +39,3 @@ export function useProviderOnboardingAutoEnable({
     })
   }, [hasServerApiKey, isOnboarding, provider, updateProvider])
 }
-

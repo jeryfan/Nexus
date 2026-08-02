@@ -55,4 +55,3 @@ export const DefaultPreferences: PreferenceSchemas = {
     'ui.theme_user.font_family': ''
   }
 }
-

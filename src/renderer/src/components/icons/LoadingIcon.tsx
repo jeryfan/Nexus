@@ -21,4 +21,3 @@ export function LoadingIcon(props: SVGProps<SVGSVGElement> & { size?: number | s
   )
 }
 export default LoadingIcon
-

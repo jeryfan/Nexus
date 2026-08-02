@@ -115,11 +115,7 @@ const ModelListGroup: React.FC<ModelListGroupProps> = ({
               variant="ghost"
               size="icon-sm"
               aria-label={'删除分组'}
-              disabled={
-                disabled ||
-                bulkActionDisabled ||
-                hasPendingModel
-              }
+              disabled={disabled || bulkActionDisabled || hasPendingModel}
               className={`${modelListClasses.rowActionButton} ${modelListClasses.rowDangerActionButton} opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within/modelGroup:opacity-100 group-hover/modelGroup:opacity-100`}
               onKeyDown={handleDeleteGroupKeyDown}
               onClick={handleDeleteGroupModels}
@@ -134,4 +130,3 @@ const ModelListGroup: React.FC<ModelListGroupProps> = ({
 }
 
 export default memo(ModelListGroup)
-

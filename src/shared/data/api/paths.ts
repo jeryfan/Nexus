@@ -97,4 +97,3 @@ export type ResponseForPath<Path extends string, Method extends string> =
       ? R
       : any
     : any
-

@@ -95,7 +95,6 @@ export interface ProviderVariant<
 
   /** 替换整个 provider（如 azure-anthropic），简单方法切换用 resolveModel */
   transform?: (baseProvider: TProvider, settings?: TSettings) => TOutput
-
 }
 
 // ============================================================================

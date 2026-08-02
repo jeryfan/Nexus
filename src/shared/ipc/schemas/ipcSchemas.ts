@@ -1,4 +1,7 @@
 import type { RouteDef } from '../define'
+import { agentRequestSchemas, type AgentEventSchemas } from '../../agent/schemas'
+import { fsRequestSchemas } from '../../fs/schemas'
+import { shellRequestSchemas } from '../../shell/schemas'
 import { aiRequestSchemas } from './ai'
 import { providerRequestSchemas } from './provider'
 
@@ -10,6 +13,9 @@ import { providerRequestSchemas } from './provider'
  * never enter the renderer bundle (see ipc-overview.md, "zod across processes").
  */
 export const ipcRequestSchemas = {
+  ...agentRequestSchemas,
+  ...fsRequestSchemas,
+  ...shellRequestSchemas,
   ...aiRequestSchemas,
   ...providerRequestSchemas
 } satisfies Record<string, RouteDef>
@@ -23,6 +29,6 @@ export type IpcRoute = keyof IpcRequestSchemas
  * the renderer trusts them and never re-parses). Each migrated domain intersects
  * its own `*EventSchemas` type here.
  */
-export type IpcEventSchemas = Record<never, never>
+export type IpcEventSchemas = AgentEventSchemas
 /** Union of all declared event names (`never` until a domain is migrated). */
 export type IpcEventName = keyof IpcEventSchemas

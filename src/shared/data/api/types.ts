@@ -673,4 +673,3 @@ export type DataApiDataChangeEffect =
       readonly dimension: string
       readonly entityIds?: readonly string[]
     }
-

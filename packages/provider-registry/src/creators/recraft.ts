@@ -6,4 +6,3 @@ export default defineCreator({
   families: ['recraft'],
   idPrefixes: ['recraft']
 })
-

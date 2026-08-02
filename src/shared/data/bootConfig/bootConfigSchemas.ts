@@ -101,4 +101,3 @@ export const DefaultBootConfig: BootConfigSchema = {
 }
 
 // === AUTO-GENERATED CONTENT END ===
-

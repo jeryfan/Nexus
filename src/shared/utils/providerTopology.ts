@@ -47,4 +47,3 @@ export function getProviderHostTopology(provider: Provider | undefined): Provide
     hasAnthropicEndpoint: hasEndpointConfig(provider, ENDPOINT_TYPE.ANTHROPIC_MESSAGES)
   }
 }
-

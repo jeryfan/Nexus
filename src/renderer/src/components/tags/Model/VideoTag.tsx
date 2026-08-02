@@ -22,4 +22,3 @@ export const VideoTag = ({ size = 12, showTooltip, showLabel, ...restProps }: Pr
     </CustomTag>
   )
 }
-

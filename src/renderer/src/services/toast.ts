@@ -19,4 +19,3 @@ const resolveToastLabels = (): Partial<ToastLabels> => ({
 })
 
 export const toast = getToastUtilities(resolveToastLabels)
-

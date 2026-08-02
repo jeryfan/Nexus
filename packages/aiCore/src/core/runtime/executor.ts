@@ -73,12 +73,10 @@ export class RuntimeExecutor<
     if (typeof modelOrId !== 'string') return modelOrId
 
     try {
-      return (
-        this.config.modelResolver?.(modelOrId) ??
+      return (this.config.modelResolver?.(modelOrId) ??
         this.registry.languageModel(
           `${this.config.providerId}:${modelOrId}` as `${string}:${string}`
-        )
-      ) as LanguageModelV3
+        )) as LanguageModelV3
     } catch (error) {
       throw new ModelResolutionError(
         modelOrId,

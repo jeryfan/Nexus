@@ -12,4 +12,3 @@ export default defineCreator({
     { pattern: 'mimo-v2[.-]5-pro-ultraspeed' }
   ]
 })
-

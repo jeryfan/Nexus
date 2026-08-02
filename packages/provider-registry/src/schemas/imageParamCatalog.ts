@@ -138,4 +138,3 @@ export function wireName(key: CanonicalParamKey): string {
 
 /** Every canonical key the catalog covers (for the exhaustiveness lock test). */
 export const IMAGE_PARAM_CATALOG_KEYS = Object.keys(IMAGE_PARAM_CATALOG) as CanonicalParamKey[]
-

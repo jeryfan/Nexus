@@ -111,4 +111,3 @@ export interface ConfirmPopupEntry extends PopupEntryBase {
 }
 
 export type PopupEntry = ComponentPopupEntry | ConfirmPopupEntry
-

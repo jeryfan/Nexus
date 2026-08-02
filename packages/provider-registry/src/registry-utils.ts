@@ -152,4 +152,3 @@ export function endpointImpliedCapability(
 ): ModelCapability | undefined {
   return endpointType ? ENDPOINT_IMPLIED_CAPABILITY[endpointType] : undefined
 }
-

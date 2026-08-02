@@ -5,8 +5,7 @@ import {
   toDataApiError
 } from '@shared/data/api/errors'
 
-const MODEL_REFERENCED_BY_HISTORICAL_DATA_REASON =
-  'model is still referenced by historical data'
+const MODEL_REFERENCED_BY_HISTORICAL_DATA_REASON = 'model is still referenced by historical data'
 
 interface ModelOperationErrorMessages {
   fallback: string
@@ -28,8 +27,7 @@ export function getModelOperationErrorMessage(
     const dataError = toDataApiError(error)
     if (
       dataError.code === ErrorCode.INVALID_OPERATION &&
-      getInvalidOperationReason(dataError.details) ===
-        MODEL_REFERENCED_BY_HISTORICAL_DATA_REASON
+      getInvalidOperationReason(dataError.details) === MODEL_REFERENCED_BY_HISTORICAL_DATA_REASON
     ) {
       return messages.modelReferencedByHistoricalData
     }
@@ -45,4 +43,3 @@ export function getModelOperationErrorMessage(
 
   return messages.fallback
 }
-

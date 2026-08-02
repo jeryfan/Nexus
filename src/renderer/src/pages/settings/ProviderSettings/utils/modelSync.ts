@@ -180,4 +180,3 @@ export async function fetchProviderCatalogModels(providerId: string): Promise<Mo
   })) as ProviderPreset
   return preset.models ?? []
 }
-

@@ -1508,4 +1508,3 @@ const MemoizedGroupedSortableVirtualList = memo(GroupedSortableVirtualList) as <
 ) => React.ReactElement
 
 export default MemoizedGroupedSortableVirtualList
-
