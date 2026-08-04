@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { PopupHost } from '@renderer/components/PopupHost'
+import { ResizeDragOverlay } from '@renderer/components/ui/resizable'
 import { ThemeProvider } from '@renderer/components/ThemeProvider'
 import ToastHost from '@renderer/components/ToastHost'
 import { Toaster } from '@renderer/features/browser/ui/sonner'
@@ -37,6 +38,7 @@ function App(): React.JSX.Element {
       {/* sonner Toaster：features/browser 的 toast.* 调用（cookie 导入、profile 操作等）的渲染宿主。 */}
       <Toaster closeButton toastOptions={{ className: 'font-sans text-sm' }} />
       <PopupHost />
+      <ResizeDragOverlay />
     </ThemeProvider>
   )
 }
