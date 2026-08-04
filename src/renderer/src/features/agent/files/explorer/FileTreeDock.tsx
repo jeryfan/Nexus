@@ -45,7 +45,7 @@ export const TreeToggleButton: FC = () => {
 /** 停靠在内容区右侧的文件树：宽度由 FileTreeLayout 的分隔条调整 */
 export const FileTreeDock: FC = () => {
   return (
-    <div className="border-border relative flex h-full w-full flex-col border-l">
+    <div className="border-border flex h-full w-full flex-col border-l">
       <FileExplorer />
     </div>
   )

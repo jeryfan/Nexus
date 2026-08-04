@@ -54,7 +54,7 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
     }
     if (collapsed) panel.collapse()
     else panel.expand()
-  }, [collapsed, sidebarPanelRef])
+  }, [collapsed, setCollapsed, sidebarPanelRef])
 
   return (
     // assets/styles/index.css 将 #root 设为 flex-row，Group 作为其 flex item 需 flex-1 撑满宽度
