@@ -48,6 +48,8 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
     if (!mountedRef.current) {
       mountedRef.current = true
       panel.expand()
+      // 同步清 store 折叠标志，避免挂载期时序造成 UI 不一致
+      if (collapsed) setCollapsed(false)
       return
     }
     if (collapsed) panel.collapse()
