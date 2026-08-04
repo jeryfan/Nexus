@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@renderer/lib/utils'
 import { WindowControls } from '@renderer/components/window-controls'
 import {
@@ -39,15 +39,23 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
 
   // 折叠开关（WindowControls）写 store，这里命令式驱动 panel；
   // 拖拽越过最小宽度时库自动折叠，经 onResize 反向同步 store
+  // 挂载守卫：持久化布局可能是折叠态（拖过最小宽度自动折叠会存 0），
+  // 启动一律展开；挂载期跳过 onResize 反向同步，避免折叠态回写 store 造成竞态
+  const mountedRef = useRef(false)
   useEffect(() => {
     const panel = sidebarPanelRef.current
     if (!panel) return
+    if (!mountedRef.current) {
+      mountedRef.current = true
+      panel.expand()
+      return
+    }
     if (collapsed) panel.collapse()
     else panel.expand()
   }, [collapsed, sidebarPanelRef])
 
   return (
-    // nexus index.css 将 #root 设为 flex-row，Group 作为其 flex item 需 flex-1 撑满宽度
+    // assets/styles/index.css 将 #root 设为 flex-row，Group 作为其 flex item 需 flex-1 撑满宽度
     <ResizableGroup
       id="nexus-shell"
       className="min-w-0 flex-1"
@@ -63,9 +71,13 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
         collapsible
         groupResizeBehavior="preserve-pixel-size"
         panelRef={sidebarPanelRef}
-        onResize={() => setCollapsed(sidebarPanelRef.current?.isCollapsed() ?? false)}
+        onResize={() => {
+          if (!mountedRef.current) return
+          setCollapsed(sidebarPanelRef.current?.isCollapsed() ?? false)
+        }}
       >
-        <div className="bg-sidebar border-sidebar-border relative flex h-full flex-col border-r">
+        {/* 分隔线由 ResizableSeparator 提供，这里不再画 border-r，避免双线 */}
+        <div className="bg-sidebar relative flex h-full flex-col">
           {/* 顶部拖拽区：窗口化时避让左侧红绿灯，全屏时贴到最左 */}
           <div
             className={cn(
