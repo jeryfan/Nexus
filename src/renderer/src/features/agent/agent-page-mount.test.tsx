@@ -2,6 +2,8 @@
 // 挂载语义回归（对齐旧实现）：面板开合不得重挂载对话区，最大化切换不得重挂载对话区
 // 与面板——重挂载会丢失滚动位置/焦点，且内置浏览器 <webview> guest 的 DOM 父节点被移除
 // 即销毁（见 browser-page-viewport.ts）。
+// 注意：happy-dom 零尺寸使库的 min/max 约束降级，本测试只覆盖挂载语义（节点同一性/
+// hidden 类），collapse/expand 的实际布局行为由 Task 5 宽窗口手工验收覆盖。
 import { act, cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -59,23 +61,24 @@ describe('AgentPage 面板开合/最大化挂载语义', () => {
       useProjectPanelStore.setState({ open: true })
     })
     expect(screen.getByTestId('thread-marker')).toBe(threadMarker)
-    expect(screen.getByTestId('panel-marker')).toBeTruthy()
+    const panelMarker = screen.getByTestId('panel-marker')
 
     // 最大化：对话区与面板均不重挂载；对话区包裹层以 hidden 类隐藏（display:none 保留状态）
     act(() => {
       useProjectPanelStore.setState({ maximized: true })
     })
     expect(screen.getByTestId('thread-marker')).toBe(threadMarker)
-    expect(screen.getByTestId('panel-marker')).toBeTruthy()
+    expect(screen.getByTestId('panel-marker')).toBe(panelMarker)
     const conversationWrapper = threadMarker.closest('.bg-background')
     expect(conversationWrapper).not.toBeNull()
     expect(conversationWrapper?.classList.contains('hidden')).toBe(true)
 
-    // 还原：hidden 类移除，仍是同一节点
+    // 还原：hidden 类移除，对话区与面板仍是同一节点
     act(() => {
       useProjectPanelStore.setState({ maximized: false })
     })
     expect(screen.getByTestId('thread-marker')).toBe(threadMarker)
+    expect(screen.getByTestId('panel-marker')).toBe(panelMarker)
     expect(conversationWrapper?.classList.contains('hidden')).toBe(false)
 
     // 收起面板：面板卸载，对话区仍是同一节点

@@ -77,7 +77,9 @@ export const AgentPage: FC = () => {
               id="project"
               defaultSize={PANEL_DEFAULT_WIDTH}
               minSize={PANEL_MIN_WIDTH}
-              maxSize={PANEL_MAX_WIDTH}
+              // 最大化（对话区折叠）期间解除上限，project 才能吸收到 100%；
+              // 还原时 expand() 回到折叠前尺寸，maxSize 约束随之恢复
+              maxSize={conversationHidden ? undefined : PANEL_MAX_WIDTH}
               groupResizeBehavior="preserve-pixel-size"
             >
               <ProjectPanel />
