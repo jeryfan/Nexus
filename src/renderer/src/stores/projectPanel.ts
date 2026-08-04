@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export const PANEL_MIN_WIDTH = 240
 export const PANEL_MAX_WIDTH = 640
-const PANEL_DEFAULT_WIDTH = 320
+export const PANEL_DEFAULT_WIDTH = 320
 export const TREE_MIN_WIDTH = 120
 export const TREE_MAX_WIDTH = 480
 const TREE_DEFAULT_WIDTH = 144
@@ -26,8 +26,6 @@ interface ProjectPanelState {
   open: boolean
   /** 面板最大化：隐藏对话区，面板占满内容区（open=false 时无视觉效果） */
   maximized: boolean
-  /** 面板宽度（非最大化时生效，拖拽左缘调整） */
-  width: number
   /** 文件树是否展示（标签栏文件夹图标切换；树是面板的可显隐区域，不是标签页） */
   treeVisible: boolean
   /** 文件树区域宽度（拖拽树的左缘调整） */
@@ -40,8 +38,6 @@ interface ProjectPanelState {
   dirtyTabIds: Record<string, true>
   toggleOpen: () => void
   toggleMaximized: () => void
-  /** 设置宽度，自动限制在 [最小值, 最大值] 区间 */
-  setWidth: (width: number) => void
   toggleTreeVisible: () => void
   /** 设置文件树区域宽度，自动限制在 [最小值, 最大值] 区间 */
   setTreeWidth: (width: number) => void
@@ -68,7 +64,6 @@ interface ProjectPanelState {
 export const useProjectPanelStore = create<ProjectPanelState>((set) => ({
   open: false,
   maximized: false,
-  width: PANEL_DEFAULT_WIDTH,
   treeVisible: false,
   treeWidth: TREE_DEFAULT_WIDTH,
   tabs: [],
@@ -76,7 +71,6 @@ export const useProjectPanelStore = create<ProjectPanelState>((set) => ({
   dirtyTabIds: {},
   toggleOpen: () => set((state) => ({ open: !state.open })),
   toggleMaximized: () => set((state) => ({ maximized: !state.maximized })),
-  setWidth: (width) => set({ width: Math.min(PANEL_MAX_WIDTH, Math.max(PANEL_MIN_WIDTH, width)) }),
   toggleTreeVisible: () => set((state) => ({ treeVisible: !state.treeVisible })),
   setTreeWidth: (width) =>
     set({ treeWidth: Math.min(TREE_MAX_WIDTH, Math.max(TREE_MIN_WIDTH, width)) }),

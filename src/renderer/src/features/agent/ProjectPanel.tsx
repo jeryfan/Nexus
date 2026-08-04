@@ -33,7 +33,7 @@ import {
   XIcon,
   type LucideIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useState, type FC } from 'react'
+import { useCallback, useEffect, type FC } from 'react'
 import { FileTreeDock, TreeToggleButton } from './files/explorer/FileTreeDock'
 import { getFileTypeIcon } from './files/lib/file-type-icons'
 import { basename } from './files/lib/path'
@@ -357,37 +357,14 @@ const TabContent: FC<{ tab: PanelTab }> = ({ tab }) => {
 /**
  * 项目面板：仅本地项目会话渲染（AgentPage 保证仅在 cwd 非空且 open 时挂载）。
  * 顶部标签栏（标签页 + 「+」菜单 + 最大化/收起按钮），主体为标签页内容；
- * 无标签页时只显示菜单列表。左缘可拖拽调整面板宽度（最大化时隐藏手柄）。
+ * 无标签页时只显示菜单列表。面板宽度由 AgentPage 的 react-resizable-panels
+ * 分隔条调整（最大化时占满内容区，无分隔条）。
  */
-export const ProjectPanel: FC<{ maximized: boolean }> = ({ maximized }) => {
-  const width = useProjectPanelStore((s) => s.width)
-  const setWidth = useProjectPanelStore((s) => s.setWidth)
+export const ProjectPanel: FC<{ maximized?: boolean }> = ({ maximized = false }) => {
   const tabs = useProjectPanelStore((s) => s.tabs)
   const activeTabId = useProjectPanelStore((s) => s.activeTabId)
   const toggleOpen = useProjectPanelStore((s) => s.toggleOpen)
   const toggleMaximized = useProjectPanelStore((s) => s.toggleMaximized)
-  const [dragging, setDragging] = useState(false)
-
-  // 拖拽左缘调整面板宽度：面板在右侧，向左拖变宽（区间限制在 store 的 setWidth 中处理）
-  const startResize = (event: React.MouseEvent<HTMLDivElement>): void => {
-    event.preventDefault()
-    const startX = event.clientX
-    const startWidth = width
-    setDragging(true)
-    document.body.style.cursor = 'col-resize'
-
-    const handleMove = (e: MouseEvent): void => {
-      setWidth(startWidth + (startX - e.clientX))
-    }
-    const handleUp = (): void => {
-      setDragging(false)
-      document.body.style.cursor = ''
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleUp)
-    }
-    window.addEventListener('mousemove', handleMove)
-    window.addEventListener('mouseup', handleUp)
-  }
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null
 
@@ -397,9 +374,8 @@ export const ProjectPanel: FC<{ maximized: boolean }> = ({ maximized }) => {
       <aside
         className={cn(
           'bg-background relative flex min-w-0 flex-col overflow-hidden rounded-lg',
-          maximized ? 'flex-1' : 'ml-2 shrink-0'
+          maximized ? 'flex-1' : 'h-full w-full'
         )}
-        style={maximized ? undefined : { width }}
       >
         {/* 标签栏：标签页 + 「+」菜单（无标签时只留右侧按钮）；pr-4 与对话头部 px-4 对齐，使 PanelRight 开合面板时位置不动 */}
         <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto pr-4 pl-2">
@@ -440,23 +416,6 @@ export const ProjectPanel: FC<{ maximized: boolean }> = ({ maximized }) => {
           {activeTab ? <TabContent tab={activeTab} /> : <EmptyMenu />}
           <BrowserHostLayer />
         </div>
-
-        {/* 左缘拖拽手柄：5px 热区 + 1px 高亮线（最大化时隐藏） */}
-        {!maximized && (
-          <div
-            role="separator"
-            aria-orientation="vertical"
-            onMouseDown={startResize}
-            className="group absolute inset-y-0 left-0 z-10 w-[5px] cursor-col-resize"
-          >
-            <div
-              className={cn(
-                'mx-auto h-full w-px transition-colors',
-                dragging ? 'bg-primary/40' : 'group-hover:bg-primary/25'
-              )}
-            />
-          </div>
-        )}
       </aside>
     </TooltipProvider>
   )
