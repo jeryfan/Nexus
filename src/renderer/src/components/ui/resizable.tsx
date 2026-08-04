@@ -35,12 +35,14 @@ export const ResizeDragOverlay: FC = () => {
   return <div aria-hidden className="fixed inset-0 z-[9999]" />
 }
 
-/** 拖拽分隔条：8px 热区 + 居中 1px 线（hover 高亮）。库自带键盘调整与双击复位。 */
+/** 拖拽分隔条：8px 热区 + 居中 1px 线（hover/拖拽中高亮）。库自带键盘调整与双击复位。 */
 export function ResizableSeparator({
   className,
   onPointerDown,
   ...props
 }: SeparatorProps): React.JSX.Element {
+  // 拖拽时全屏遮罩盖住分隔条、hover 丢失，改用全局 dragging 标志保持高亮反馈
+  const dragging = useResizeDragStore((s) => s.dragging)
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
     useResizeDragStore.getState().begin()
     const end = (): void => {
@@ -61,7 +63,12 @@ export function ResizableSeparator({
         className
       )}
     >
-      <div className="bg-border h-full w-px transition-colors group-hover:bg-primary/25" />
+      <div
+        className={cn(
+          'h-full w-px transition-colors',
+          dragging ? 'bg-primary/40' : 'bg-border group-hover:bg-primary/25'
+        )}
+      />
     </Separator>
   )
 }

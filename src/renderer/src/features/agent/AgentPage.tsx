@@ -35,8 +35,8 @@ export const AgentPage: FC = () => {
   // 折叠前对话 Panel 的尺寸百分比，还原时经 resize() 回到该尺寸
   const preCollapseSizeRef = useRef<number | null>(null)
 
-  // 最大化：折叠对话 Panel。面板 maxSize 封顶 640，常规拖拽/键盘不会把对话区压到折叠，
-  // 仅 maximized 命令式路径会。
+  // 最大化：折叠对话 Panel。面板 maxSize 封顶 640，常规拖拽不会把对话区压到折叠；
+  // 分隔条 Enter 折叠开关与 maximized 命令式路径除外（前者为已接受边角）。
   // setTimeout 0：project Panel 的 maxSize 解除经库内「重注册 → 版本 bump → 下一 commit」
   // 才生效，collapse 必须等约束更新落地后执行，否则仍按旧上限截断。
   // 还原不用 expand()：maxSize 恢复引发约束重注册 → 布局按缓存重建并被 640 上限钳制改写，

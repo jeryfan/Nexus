@@ -33,11 +33,7 @@ export const TreeToggleButton: FC = () => {
       onClick={toggleTreeVisible}
       className={cn('size-6 shrink-0', treeVisible && 'bg-muted')}
     >
-      {treeVisible ? (
-        <FolderOpenIcon className="size-3.5" />
-      ) : (
-        <FolderIcon className="size-3.5" />
-      )}
+      {treeVisible ? <FolderOpenIcon className="size-3.5" /> : <FolderIcon className="size-3.5" />}
     </TooltipIconButton>
   )
 }
@@ -45,7 +41,8 @@ export const TreeToggleButton: FC = () => {
 /** 停靠在内容区右侧的文件树：宽度由 FileTreeLayout 的分隔条调整 */
 export const FileTreeDock: FC = () => {
   return (
-    <div className="border-border flex h-full w-full flex-col border-l">
+    // 分隔线由 ResizableSeparator 提供，这里不再画 border-l，避免双线
+    <div className="flex h-full w-full flex-col">
       <FileExplorer />
     </div>
   )
@@ -57,7 +54,10 @@ export const FileTreeDock: FC = () => {
  */
 export const FileTreeLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const treeVisible = useProjectPanelStore((s) => s.treeVisible)
-  const layout = useDefaultLayout({ id: 'nexus-project-panel', onlySaveAfterUserInteractions: true })
+  const layout = useDefaultLayout({
+    id: 'nexus-project-panel',
+    onlySaveAfterUserInteractions: true
+  })
   return (
     <ResizableGroup
       id="nexus-project-panel"
