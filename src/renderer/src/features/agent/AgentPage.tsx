@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   PANEL_DEFAULT_WIDTH,
   PANEL_MAX_WIDTH,
@@ -32,14 +32,31 @@ export const AgentPage: FC = () => {
   const conversationHidden = showPanel && maximized
   const layout = useDefaultLayout({ id: 'nexus-agent-page', onlySaveAfterUserInteractions: true })
   const threadPanelRef = usePanelRef()
+  // 折叠前对话 Panel 的尺寸百分比，还原时经 resize() 回到该尺寸
+  const preCollapseSizeRef = useRef<number | null>(null)
 
-  // 最大化：折叠对话 Panel；还原时 expand() 回到折叠前尺寸。面板 maxSize 封顶 640，
-  // 常规拖拽/键盘不会把对话区压到折叠，仅 maximized 命令式路径会。
+  // 最大化：折叠对话 Panel。面板 maxSize 封顶 640，常规拖拽/键盘不会把对话区压到折叠，
+  // 仅 maximized 命令式路径会。
+  // setTimeout 0：project Panel 的 maxSize 解除经库内「重注册 → 版本 bump → 下一 commit」
+  // 才生效，collapse 必须等约束更新落地后执行，否则仍按旧上限截断。
+  // 还原不用 expand()：maxSize 恢复引发约束重注册 → 布局按缓存重建并被 640 上限钳制改写，
+  // expand() 因当前尺寸 ≠ collapsedSize 而 no-op；resize() 无此限制，直接回到折叠前尺寸
+  // （命令式 resize 不带 isUserInteraction 标志，布局持久化语义不受影响）。
   useEffect(() => {
-    const panel = threadPanelRef.current
-    if (!panel) return
-    if (conversationHidden) panel.collapse()
-    else panel.expand()
+    const timer = setTimeout(() => {
+      const panel = threadPanelRef.current
+      if (!panel) return
+      if (conversationHidden) {
+        preCollapseSizeRef.current = panel.getSize().asPercentage
+        panel.collapse()
+      } else {
+        const target = preCollapseSizeRef.current
+        preCollapseSizeRef.current = null
+        if (target !== null && target > 0) panel.resize(`${target}%`)
+        else panel.expand()
+      }
+    }, 0)
+    return () => clearTimeout(timer)
   }, [conversationHidden, threadPanelRef])
 
   // 外层 Shell 的 <main> 是 app-drag（窗口拖拽区），对话区整体需 app-no-drag 才能交互
@@ -78,7 +95,7 @@ export const AgentPage: FC = () => {
               defaultSize={PANEL_DEFAULT_WIDTH}
               minSize={PANEL_MIN_WIDTH}
               // 最大化（对话区折叠）期间解除上限，project 才能吸收到 100%；
-              // 还原时 expand() 回到折叠前尺寸，maxSize 约束随之恢复
+              // 还原时 resize() 回到折叠前尺寸，maxSize 约束随之恢复
               maxSize={conversationHidden ? undefined : PANEL_MAX_WIDTH}
               groupResizeBehavior="preserve-pixel-size"
             >
