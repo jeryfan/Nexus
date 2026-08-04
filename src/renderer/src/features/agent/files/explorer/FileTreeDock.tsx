@@ -1,8 +1,19 @@
 import { TooltipIconButton } from '@renderer/components/assistant-ui/tooltip-icon-button'
+import {
+  ResizableGroup,
+  ResizablePanel,
+  ResizableSeparator,
+  useDefaultLayout
+} from '@renderer/components/ui/resizable'
 import { cn } from '@renderer/lib/utils'
-import { useProjectPanelStore } from '@renderer/stores/projectPanel'
+import {
+  TREE_DEFAULT_WIDTH,
+  TREE_MAX_WIDTH,
+  TREE_MIN_WIDTH,
+  useProjectPanelStore
+} from '@renderer/stores/projectPanel'
 import { FolderIcon, FolderOpenIcon } from 'lucide-react'
-import { useState, type FC } from 'react'
+import type { FC, ReactNode } from 'react'
 
 import { FileExplorer } from './FileExplorer'
 
@@ -31,52 +42,46 @@ export const TreeToggleButton: FC = () => {
   )
 }
 
-/** 停靠在文件标签内容区右侧的文件树：左缘拖拽调宽（向左拖变宽） */
+/** 停靠在内容区右侧的文件树：宽度由 FileTreeLayout 的分隔条调整 */
 export const FileTreeDock: FC = () => {
-  const treeWidth = useProjectPanelStore((s) => s.treeWidth)
-  const setTreeWidth = useProjectPanelStore((s) => s.setTreeWidth)
-  const [dragging, setDragging] = useState(false)
-
-  const startResize = (event: React.MouseEvent<HTMLDivElement>): void => {
-    event.preventDefault()
-    const startX = event.clientX
-    const startWidth = treeWidth
-    setDragging(true)
-    document.body.style.cursor = 'col-resize'
-
-    const handleMove = (e: MouseEvent): void => {
-      setTreeWidth(startWidth + (startX - e.clientX))
-    }
-    const handleUp = (): void => {
-      setDragging(false)
-      document.body.style.cursor = ''
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mouseup', handleUp)
-    }
-    window.addEventListener('mousemove', handleMove)
-    window.addEventListener('mouseup', handleUp)
-  }
-
   return (
-    <div
-      className="border-border relative flex shrink-0 flex-col border-l"
-      style={{ width: treeWidth }}
-    >
+    <div className="border-border relative flex h-full w-full flex-col border-l">
       <FileExplorer />
-      {/* 左缘拖拽手柄：5px 热区 + 1px 高亮线（边框起点在面包屑行之下） */}
-      <div
-        role="separator"
-        aria-orientation="vertical"
-        onMouseDown={startResize}
-        className="group absolute inset-y-0 left-0 z-10 w-[5px] cursor-col-resize"
-      >
-        <div
-          className={cn(
-            'mx-auto h-full w-px transition-colors',
-            dragging ? 'bg-primary/40' : 'group-hover:bg-primary/25'
-          )}
-        />
-      </div>
     </div>
+  )
+}
+
+/**
+ * 内容区 + 文件树的可拉伸布局（react-resizable-panels，宽度 localStorage 记忆）。
+ * 供「打开文件」页与文件预览标签使用；两者同一时刻只挂载其一，共享 group id。
+ */
+export const FileTreeLayout: FC<{ children: ReactNode }> = ({ children }) => {
+  const treeVisible = useProjectPanelStore((s) => s.treeVisible)
+  const layout = useDefaultLayout({ id: 'nexus-project-panel', onlySaveAfterUserInteractions: true })
+  return (
+    <ResizableGroup
+      id="nexus-project-panel"
+      className="min-h-0 flex-1"
+      defaultLayout={layout.defaultLayout}
+      onLayoutChanged={layout.onLayoutChanged}
+    >
+      <ResizablePanel id="content" groupResizeBehavior="preserve-pixel-size">
+        {children}
+      </ResizablePanel>
+      {treeVisible && (
+        <>
+          <ResizableSeparator />
+          <ResizablePanel
+            id="tree"
+            defaultSize={TREE_DEFAULT_WIDTH}
+            minSize={TREE_MIN_WIDTH}
+            maxSize={TREE_MAX_WIDTH}
+            groupResizeBehavior="preserve-pixel-size"
+          >
+            <FileTreeDock />
+          </ResizablePanel>
+        </>
+      )}
+    </ResizableGroup>
   )
 }

@@ -169,7 +169,7 @@ describe('AgentPage 面板开合/最大化挂载语义', () => {
     expectGrow('thread', 0)
     expectGrow('project', 100)
 
-    // 还原：expand() 回到折叠前尺寸
+    // 还原：resize() 回到折叠前尺寸（expand() 兜底）
     await act(async () => {
       useProjectPanelStore.setState({ maximized: false })
       await flushMacrotask()

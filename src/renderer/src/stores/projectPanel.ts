@@ -5,7 +5,7 @@ export const PANEL_MAX_WIDTH = 640
 export const PANEL_DEFAULT_WIDTH = 320
 export const TREE_MIN_WIDTH = 120
 export const TREE_MAX_WIDTH = 480
-const TREE_DEFAULT_WIDTH = 144
+export const TREE_DEFAULT_WIDTH = 144
 
 /** 面板标签页类型（前四个对应「+」菜单入口；'file-browser' 为「打开文件」页，'file' 为文件预览/编辑标签） */
 export type PanelTabType = 'review' | 'terminal' | 'browser' | 'chat' | 'file-browser' | 'file'
@@ -28,8 +28,6 @@ interface ProjectPanelState {
   maximized: boolean
   /** 文件树是否展示（标签栏文件夹图标切换；树是面板的可显隐区域，不是标签页） */
   treeVisible: boolean
-  /** 文件树区域宽度（拖拽树的左缘调整） */
-  treeWidth: number
   /** 已打开的标签页 */
   tabs: PanelTab[]
   /** 当前激活的标签页；null 表示无标签（显示菜单列表） */
@@ -39,8 +37,6 @@ interface ProjectPanelState {
   toggleOpen: () => void
   toggleMaximized: () => void
   toggleTreeVisible: () => void
-  /** 设置文件树区域宽度，自动限制在 [最小值, 最大值] 区间 */
-  setTreeWidth: (width: number) => void
   /** 打开一个标签页并激活（同类型允许多开）。options.id 供浏览器标签复用 BrowserWorkspace.id；label 为自定义标题 */
   openTab: (type: PanelTabType, options?: { id?: string; label?: string }) => void
   /** 重命名标签标题（浏览器标签随页面标题更新） */
@@ -65,15 +61,12 @@ export const useProjectPanelStore = create<ProjectPanelState>((set) => ({
   open: false,
   maximized: false,
   treeVisible: false,
-  treeWidth: TREE_DEFAULT_WIDTH,
   tabs: [],
   activeTabId: null,
   dirtyTabIds: {},
   toggleOpen: () => set((state) => ({ open: !state.open })),
   toggleMaximized: () => set((state) => ({ maximized: !state.maximized })),
   toggleTreeVisible: () => set((state) => ({ treeVisible: !state.treeVisible })),
-  setTreeWidth: (width) =>
-    set({ treeWidth: Math.min(TREE_MAX_WIDTH, Math.max(TREE_MIN_WIDTH, width)) }),
   openTab: (type, options) =>
     set((state) => {
       // 「打开文件」页唯一：已存在时仅激活（重复点菜单「文件」不多开）

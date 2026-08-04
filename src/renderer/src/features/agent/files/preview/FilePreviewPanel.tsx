@@ -24,7 +24,7 @@ import { ipcApi } from '@renderer/ipc/ipcApi'
 import { toast } from '@renderer/services/toast'
 import { useProjectPanelStore } from '@renderer/stores/projectPanel'
 import { selectActiveCwd, useAgentStore } from '../../agentStore'
-import { FileTreeDock, TreeToggleButton } from '../explorer/FileTreeDock'
+import { FileTreeLayout, TreeToggleButton } from '../explorer/FileTreeDock'
 import { readFile, writeFile, type FsReadFileResult } from '../fsClient'
 import { detectLanguage } from '../lib/language-detect'
 import { basename, getRelativePathInsideRoot } from '../lib/path'
@@ -149,7 +149,6 @@ export function FilePreviewPanel({ filePath, tabId }: FilePreviewPanelProps): Re
   // window 级 Cmd/Ctrl+S 兜底：Monaco 未聚焦时也能保存
   // （仅当前标签激活且 dirty 时接管按键）
   const isActiveTab = useProjectPanelStore((s) => tabId !== undefined && s.activeTabId === tabId)
-  const treeVisible = useProjectPanelStore((s) => s.treeVisible)
   const handleSaveRef = useRef(handleSave)
   handleSaveRef.current = handleSave
   useEffect(() => {
@@ -312,10 +311,9 @@ export function FilePreviewPanel({ filePath, tabId }: FilePreviewPanelProps): Re
         </Button>
       </div>
       {/* 文件树停靠在面包屑行之下：预览区与树之间的边框从「打开」一行下面开始 */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="min-w-0 flex-1">{renderBody()}</div>
-        {treeVisible && <FileTreeDock />}
-      </div>
+      <FileTreeLayout>
+        <div className="h-full w-full min-w-0">{renderBody()}</div>
+      </FileTreeLayout>
     </div>
   )
 }

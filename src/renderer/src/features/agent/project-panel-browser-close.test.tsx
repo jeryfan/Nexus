@@ -13,6 +13,7 @@ import { useProjectPanelStore } from '@renderer/stores/projectPanel'
 // 文件树/文件预览依赖 Monaco 与 IPC，非本测试关注点，隔离掉。
 vi.mock('./files/explorer/FileTreeDock', () => ({
   FileTreeDock: () => null,
+  FileTreeLayout: ({ children }: { children?: unknown }) => children ?? null,
   TreeToggleButton: () => null
 }))
 vi.mock('./files/preview/FilePreviewPanel', () => ({

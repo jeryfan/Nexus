@@ -34,7 +34,7 @@ import {
   type LucideIcon
 } from 'lucide-react'
 import { useCallback, useEffect, type FC } from 'react'
-import { FileTreeDock, TreeToggleButton } from './files/explorer/FileTreeDock'
+import { FileTreeLayout, TreeToggleButton } from './files/explorer/FileTreeDock'
 import { getFileTypeIcon } from './files/lib/file-type-icons'
 import { basename } from './files/lib/path'
 import { FilePreviewPanel } from './files/preview/FilePreviewPanel'
@@ -250,21 +250,19 @@ const EmptyMenu: FC = () => {
  */
 const FileBrowserPanel: FC = () => {
   // 「打开文件」页中树即内容，不受窄面板让位规则影响（占位提示可压缩）
-  const treeVisible = useProjectPanelStore((s) => s.treeVisible)
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="border-border flex h-8 min-h-8 items-center gap-2 border-b px-2">
         <span className="text-muted-foreground flex-1 text-xs">/</span>
         <TreeToggleButton />
       </div>
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2">
+      <FileTreeLayout>
+        <div className="flex h-full w-full min-w-0 flex-col items-center justify-center gap-2">
           <FolderIcon className="text-muted-foreground size-8" />
           <div className="text-sm font-medium">打开文件</div>
           <div className="text-muted-foreground text-xs">从工作区目录树中选择文件</div>
         </div>
-        {treeVisible && <FileTreeDock />}
-      </div>
+      </FileTreeLayout>
     </div>
   )
 }
