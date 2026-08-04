@@ -1,0 +1,33 @@
+// 裁剪: computer-use 域的
+// computerErrorData 恢复数据注入（invalid_argument 不再携带 computer 恢复数据）。
+import { InvalidArgumentError, ZodError, formatZodError } from './core'
+import type { RpcEnvelopeMeta, RpcRequest, RpcResponse } from './core'
+import { errorResponse, mapBrowserError, mapEmulatorError, mapRuntimeError } from './errors'
+
+export function invalidArgumentResponse(
+  request: RpcRequest,
+  meta: RpcEnvelopeMeta,
+  message: string
+): RpcResponse {
+  return errorResponse(request.id, meta, 'invalid_argument', message)
+}
+
+export function mapDispatcherError(
+  request: RpcRequest,
+  meta: RpcEnvelopeMeta,
+  error: unknown
+): RpcResponse {
+  if (error instanceof ZodError) {
+    return invalidArgumentResponse(request, meta, formatZodError(error))
+  }
+  if (error instanceof InvalidArgumentError) {
+    return invalidArgumentResponse(request, meta, error.message)
+  }
+  if (request.method.startsWith('browser.')) {
+    return mapBrowserError(request.id, meta, error)
+  }
+  if (request.method.startsWith('emulator.')) {
+    return mapEmulatorError(request.id, meta, error)
+  }
+  return mapRuntimeError(request.id, meta, error)
+}

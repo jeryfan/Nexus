@@ -12,7 +12,21 @@ const isExternal = (id: string): boolean =>
 
 export default defineConfig({
   main: {
-    build: { rollupOptions: { external: isExternal } },
+    build: {
+      rollupOptions: {
+        external: isExternal,
+        input: {
+          index: resolve('src/main/index.ts'),
+          // Why: sandboxed webview preloads cannot load Rollup helper chunks.
+          'browser-window-close-preload': resolve('src/preload/browser-window-close.ts')
+        },
+        // Why: Rolldown's SSR default is ESM, but sandboxed webview preloads must be CJS.
+        output: {
+          format: 'cjs',
+          entryFileNames: '[name].js'
+        }
+      }
+    },
     resolve: {
       alias: {
         '@main': resolve('src/main'),
@@ -28,7 +42,29 @@ export default defineConfig({
       }
     }
   },
-  preload: { resolve: { alias: { '@shared': shared } } },
+  preload: {
+    build: {
+      rollupOptions: {
+        // Why: 与 main 一致外置 electron/内置模块/运行时依赖。缺省时 rolldown 会把
+        // node_modules/electron（启动器包）打进产物，preload 加载时按 out/preload/ 下
+        // 不存在的 path.txt 解析二进制并抛 "Electron failed to install correctly"，
+        // 导致 window.api 整体缺失（CLI requestTabCreate 无人应答）。
+        external: isExternal,
+        input: {
+          index: resolve('src/preload/index.ts')
+        },
+        // Why: 显式钉死 preload 产物为 ESM .mjs。因果链：显式 input 模式 → vite 8 SSR
+        // 构建默认 ESM → .mjs 产物 → src/main/index.ts 按 `../preload/index.mjs` 引用。
+        // 勿删上方 input 块或改此 output：失去 input 会退回 electron-vite lib 模式，
+        // 产物变成 CJS .js，主进程引用路径断链。
+        output: {
+          format: 'es',
+          entryFileNames: '[name].mjs'
+        }
+      }
+    },
+    resolve: { alias: { '@shared': shared } }
+  },
   renderer: {
     resolve: {
       alias: {

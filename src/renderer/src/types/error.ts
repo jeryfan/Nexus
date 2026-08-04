@@ -256,16 +256,16 @@ export const isSerializedAiSdkRetryError = (
 
 // This type is not exported by aisdk.
 // See: https://github.com/vercel/ai/pull/8464
-export interface SerializedAiSdkTooManyEmbeddingValuesForCallError extends SerializedAiSdkError {
+export interface SerializedAiSdkTooManyEmbeddingValuesError extends SerializedAiSdkError {
   readonly provider: string
   readonly modelId: string
   readonly maxEmbeddingsPerCall: number
   readonly values: Serializable[]
 }
 
-export const isSerializedAiSdkTooManyEmbeddingValuesForCallError = (
+export const isSerializedAiSdkTooManyEmbeddingValuesError = (
   error: SerializedError
-): error is SerializedAiSdkTooManyEmbeddingValuesForCallError => {
+): error is SerializedAiSdkTooManyEmbeddingValuesError => {
   return (
     isSerializedAiSdkError(error) &&
     'provider' in error &&

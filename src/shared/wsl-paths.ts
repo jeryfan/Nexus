@@ -1,4 +1,4 @@
-/** WSL UNC 路径解析（ported from orca src/shared/wsl-paths.ts，仅保留外部编辑器启动所需的 parseWslUncPath）。 */
+/** WSL UNC 路径解析（仅保留外部编辑器启动所需的 parseWslUncPath）。 */
 export type WslUncPathInfo = {
   distro: string
   linuxPath: string

@@ -1,19 +1,18 @@
 /**
- * 文件预览面板（header + 主体，参考 orca EditorPanelHeader /
- * EditorPanelHeaderPath / editor-labels 与 ImageViewer 裁剪移植）。
+ * 文件预览面板（header + 主体）。
  *
  * Header：面包屑 `项目名 > 相对/路径/文件.ts`（点击复制完整路径）+ 右侧
  * 文件树开关（文件夹图标）+「打开」按钮（shell.openInExternalEditor，默认 code / VS Code）。
  * 主体：loading / error / 二进制不可预览 / 图片 / Monaco 编辑器；
  * 文件树停靠在面包屑行之下（预览区与树的边框从该行下面开始）。
  *
- * 文本文件可编辑（orca EditorPanel 移植）：Monaco readOnly=false + draft/
+ * 文本文件可编辑：Monaco readOnly=false + draft/
  * 基线双状态，dirty = normalize(draft) !== normalize(content)（markdown 按
  * trimEnd 归一），Cmd/Ctrl+S 保存（编辑器内 Monaco 命令 + window 级兜底），
  * dirty 状态经 tabId 上报 projectPanel store 供标签栏显示圆点。
- * 限制：外部修改冲突不做 orca 级处理 —— 仅在标签重开时重新读盘；
- * 切换标签时 TabContent 卸载，未保存草稿随之丢弃（orca 的 hot-exit
- * 草稿恢复已裁剪）—— 刻意保留的限制。
+ * 限制：外部修改冲突不做复杂处理 —— 仅在标签重开时重新读盘；
+ * 切换标签时 TabContent 卸载，未保存草稿随之丢弃（不做 hot-exit
+ * 草稿恢复）—— 刻意保留的限制。
  */
 import '@nexus/ui/components/composites/markdown/styles'
 
@@ -105,7 +104,7 @@ export function FilePreviewPanel({ filePath, tabId }: FilePreviewPanelProps): Re
     setViewMode('preview')
   }, [filePath])
 
-  // dirty 判定（orca EditorPanel handleContentChangeForFile 的 normalize 比较）：
+  // dirty 判定（normalize 比较）：
   // markdown 按 trimEnd 归一后比较，其余语言原样比较。
   const dirty = useMemo(() => {
     if (draft === null || content === null) {
@@ -182,7 +181,7 @@ export function FilePreviewPanel({ filePath, tabId }: FilePreviewPanelProps): Re
   }, [filePath, rootPath])
 
   const handleCopyPath = (): void => {
-    // orca EditorPanelHeaderPath 的 click-to-copy-path 行为
+    // click-to-copy-path 行为
     navigator.clipboard
       .writeText(filePath)
       .then(() => toast.success('已复制路径'))
@@ -224,7 +223,7 @@ export function FilePreviewPanel({ filePath, tabId }: FilePreviewPanelProps): Re
       )
     }
     if (isPreviewableImage) {
-      // 图片预览：对齐 orca ImageViewer 的布局方式（滚动容器内居中、object-contain）
+      // 图片预览：布局方式（滚动容器内居中、object-contain）
       return (
         <div className="h-full overflow-auto bg-muted/20">
           <div className="flex h-max min-h-full w-max min-w-full items-center justify-center p-4">

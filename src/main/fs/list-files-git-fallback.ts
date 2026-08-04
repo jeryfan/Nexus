@@ -1,6 +1,5 @@
 /**
- * 移植自 orca src/main/ipc/filesystem-list-files-git-fallback.ts：
- * 去掉 WSL/remote 分支（gitSpawn → 本地 spawn），其余逻辑保持一致。
+ * 文件列举的 git fallback：仅本地 spawn（无 WSL/remote 分支）。
  */
 import { spawn, type ChildProcess } from 'node:child_process'
 import {

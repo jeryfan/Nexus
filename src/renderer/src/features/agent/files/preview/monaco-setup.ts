@@ -1,9 +1,9 @@
 /**
- * Monaco 初始化（文件预览面板，ported from orca src/renderer/src/lib/monaco-setup.ts）。
+ * Monaco 初始化（文件预览面板）。
  *
  * 本地打包（不走 CDN）、`?worker` 接线、TS 诊断关闭（纯查看器），
  * 以及自包含的 Monarch 语言注册（vue/svelte/astro/jsonl）。
- * 已裁剪 orca 的 delayer/peek/paste-guard、diff disposal guard、nim TextMate 链
+ * 已裁剪 delayer/peek/paste-guard、diff disposal guard、nim TextMate 链
  * （vscode-oniguruma）与 i18n/store 耦合。
  */
 import { loader } from '@monaco-editor/react'

@@ -1,8 +1,8 @@
 /**
- * Filesystem IPC route schemas (file-explorer domain, ported from orca).
+ * Filesystem IPC route schemas (file-explorer domain).
  *
  * Route inputs are untrusted renderer data and are always parsed (IpcRouter).
- * Paths arrive unscoped (no connectionId/authorization layer like orca's);
+ * Paths arrive unscoped (no connectionId/authorization layer);
  * the main-process handlers `resolve()` them and let fs errors propagate.
  *
  * Renderer code MUST `import type` from this module so zod never enters the

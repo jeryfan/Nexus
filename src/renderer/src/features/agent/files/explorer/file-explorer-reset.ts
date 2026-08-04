@@ -1,6 +1,6 @@
 /**
  * Decides whether the explorer must reset its caches for the now-visible root.
- * Keyed by root path (orca keyed the same check by worktree path).
+ * Keyed by root path.
  */
 export function shouldResetFileExplorerForVisibleRoot(
   lastResetRootPath: string | null,

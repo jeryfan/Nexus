@@ -1,0 +1,17 @@
+{
+  "extends": "@electron-toolkit/tsconfig/tsconfig.node.json",
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "rootDir": "../src",
+    "outDir": "../out",
+    "composite": false,
+    "noEmit": false,
+    "sourceMap": false,
+    "declaration": false
+  },
+  "include": ["../src/cli/**/*", "../src/shared/browser/**/*"],
+  // Why: 测试文件不进 out/cli 与 out/shared——它们经 vitest 直接跑源码，编译产物
+  // 只会随 asarUnpack（out/cli/** 与 out/shared/**）白白打进安装包。
+  "exclude": ["../src/cli/**/*.test.ts", "../src/shared/browser/**/*.test.ts"]
+}

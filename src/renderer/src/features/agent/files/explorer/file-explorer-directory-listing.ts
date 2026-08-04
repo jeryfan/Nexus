@@ -22,7 +22,7 @@ export function fileExplorerEntriesToTreeNodes(
   })
 }
 
-/** orca: readFileExplorerDirectory — local-only here, no operation-owner routing. */
+/** readFileExplorerDirectory — local-only here, no operation-owner routing. */
 export async function readFileExplorerDirectory(dirPath: string): Promise<FsDirEntry[]> {
   return readDir(dirPath)
 }

@@ -1,6 +1,5 @@
 /**
- * CLI 命令解析（ported from orca src/shared/node-cli-command-resolution.ts，
- * 仅保留外部编辑器启动所需的 resolveCliCommand 及其内部辅助函数；
+ * CLI 命令解析（仅保留外部编辑器启动所需的 resolveCliCommand 及其内部辅助函数；
  * resolveCliCommands / resolveCodexCommand / resolveClaudeCommand /
  * getVersionManagerBinPaths 未迁移）。
  */

@@ -1,5 +1,5 @@
 // Why: large IPC collections must not start every operation at once.
-// Ported from orca shared/map-with-concurrency (only forEachWithConcurrency is used here).
+// Only forEachWithConcurrency is used here.
 export function forEachWithConcurrency<T>(
   items: readonly T[],
   limit: number,

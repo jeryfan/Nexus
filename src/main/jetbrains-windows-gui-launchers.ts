@@ -1,4 +1,4 @@
-/** Ported from orca src/main/jetbrains-windows-gui-launchers.ts (verbatim，外部编辑器启动依赖)。 */
+/** 外部编辑器启动依赖：Windows JetBrains GUI launcher 解析。 */
 import { win32 } from 'node:path'
 import {
   getLauncherBaseName,

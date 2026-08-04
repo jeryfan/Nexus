@@ -26,7 +26,7 @@ import {
   isSerializedAiSdkNoSuchToolError,
   isSerializedAiSdkRetryError,
   isSerializedAiSdkToolCallRepairError,
-  isSerializedAiSdkTooManyEmbeddingValuesForCallError,
+  isSerializedAiSdkTooManyEmbeddingValuesError,
   isSerializedAiSdkTypeValidationError,
   isSerializedAiSdkUnsupportedFunctionalityError,
   isSerializedError
@@ -353,7 +353,7 @@ const AiSdkError = memo(({ error }: { error: SerializedAiSdkErrorUnion }) => {
 
       {(isSerializedAiSdkNoSuchModelError(error) ||
         isSerializedAiSdkNoSuchProviderError(error) ||
-        isSerializedAiSdkTooManyEmbeddingValuesForCallError(error)) &&
+        isSerializedAiSdkTooManyEmbeddingValuesError(error)) &&
         error.modelId && (
           <ErrorDetailItem>
             <ErrorDetailLabel>{'模型 ID'}:</ErrorDetailLabel>
@@ -423,7 +423,7 @@ const AiSdkError = memo(({ error }: { error: SerializedAiSdkErrorUnion }) => {
         </>
       )}
 
-      {isSerializedAiSdkTooManyEmbeddingValuesForCallError(error) && (
+      {isSerializedAiSdkTooManyEmbeddingValuesError(error) && (
         <>
           {error.provider && (
             <ErrorDetailItem>

@@ -1,6 +1,5 @@
 /**
- * Windows batch spawn 辅助（ported from orca src/shared/windows-batch-spawn.ts，
- * 仅保留外部编辑器启动所需的部分）。
+ * Windows batch spawn 辅助（仅保留外部编辑器启动所需的部分）。
  */
 import { win32 } from 'node:path'
 

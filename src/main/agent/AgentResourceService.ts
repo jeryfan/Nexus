@@ -22,6 +22,7 @@ import { dirname, join, sep } from 'node:path'
 import { broadcastIpcEvent } from './broadcast'
 import { loadPi } from './PiLoader'
 import { inferPackageName, isPinnedSource, packageIdentity, packageTypeOf } from './packageSources'
+import { syncBuiltinTree } from './builtinPackageSync'
 
 const logger = loggerService.withContext('AgentResourceService')
 
@@ -65,7 +66,11 @@ export class AgentResourceService {
   /** 被禁用的技能 filePath 集合；持久化在 nexus-resources.json */
   private readonly skillDisabled = new Set<string>()
   private initialized = false
-  private reconciling = false
+  /** 进行中的 reconcile（initialize/重试共享去重；createLoader 的门控是 treeReady，见下）。 */
+  private reconcileInFlight: Promise<void> | null = null
+  /** sync+登记阶段落定时 resolve（createLoader 的门控；刻意不含 reloadAll，避免与 loader Promise 成环）。 */
+  private treeReady: Promise<void> | null = null
+  private treeReadyResolve: (() => void) | null = null
   private builtinPackages: BuiltinPackageDef[] = []
 
   async initialize(): Promise<void> {
@@ -93,7 +98,7 @@ export class AgentResourceService {
     this.builtinPackages = this.loadBuiltinPackages()
     this.initialized = true
 
-    // reconcile 可能联网安装，异步执行不阻塞启动；完成后广播 changed 让 UI 刷新
+    // 离线 reconcile（从随包预装树拷贝），异步执行不阻塞启动；完成后广播 changed 让 UI 刷新
     void this.reconcileBuiltins()
   }
 
@@ -201,6 +206,7 @@ export class AgentResourceService {
   async installPackage(source: string): Promise<void> {
     const pm = this.requirePackageManager()
     await pm.installAndPersist(source)
+    await this.repairBuiltinTree()
     await this.reloadAll()
     this.broadcastChanged('install')
   }
@@ -211,6 +217,7 @@ export class AgentResourceService {
       throw new Error('内置包不可删除（可禁用）')
     }
     await pm.removeAndPersist(source)
+    await this.repairBuiltinTree()
     await this.reloadAll()
     this.broadcastChanged('remove')
   }
@@ -219,6 +226,7 @@ export class AgentResourceService {
     const pm = this.requirePackageManager()
     // 内置包为钉版源，pi 的 update 天然跳过，无需额外拦截
     await pm.update(source)
+    await this.repairBuiltinTree()
     await this.reloadAll()
     this.broadcastChanged('update')
   }
@@ -242,7 +250,7 @@ export class AgentResourceService {
 
   // ── 技能管理 ──
 
-  /** 列出全局可见的技能（经 neutral loader：用户目录 + 包；项目技能恒不加载）。 */
+  /** 列出全局可见的技能（经 neutral loader：用户目录 + 包 + 内置；项目技能恒不加载）。 */
   async listSkills(): Promise<AgentSkillDto[]> {
     const loader = await this.acquireLoader(this.agentDir)
     const { skills } = loader.getSkills()
@@ -251,7 +259,7 @@ export class AgentResourceService {
         name: skill.name,
         description: skill.description,
         filePath: skill.filePath,
-        sourceLabel: skillSourceLabel(skill),
+        sourceLabel: skillSourceLabel(skill, this.isBundledSkill(skill.filePath)),
         enabled: !this.skillDisabled.has(skill.filePath)
       }))
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -269,6 +277,10 @@ export class AgentResourceService {
   // ── Internals ──
 
   private async createLoader(cwd: string): Promise<DefaultResourceLoader> {
+    // 等待进行中的 reconcile 完成 sync+登记（treeReady 刻意不含 reloadAll，否则与本方法
+    // 产生的 loader Promise 成环）：否则 loader 会快照到未就绪的资源，或在升级窗口内
+    // 经 pi resolve 触发联网补装
+    await this.treeReady
     const pi = await loadPi()
     const loader = new pi.DefaultResourceLoader({
       cwd,
@@ -279,6 +291,9 @@ export class AgentResourceService {
       noThemes: true,
       // 产品级提示词规则（resources/agent/prompts/*.md，随包分发）
       appendSystemPrompt: this.agentPromptPaths(),
+      // 内置技能（resources/agent/skills/*/SKILL.md，随包分发；经 skillsOverride
+      // 同样受启用/禁用管理）
+      additionalSkillPaths: this.bundledSkillPaths(),
       extensionsOverride: (base) => this.filterDisabledBuiltinExtensions(base),
       skillsOverride: (base) => {
         if (this.skillDisabled.size === 0) return base
@@ -312,38 +327,93 @@ export class AgentResourceService {
     }
   }
 
-  private async reconcileBuiltins(): Promise<void> {
-    if (this.reconciling) return
-    this.reconciling = true
-    try {
-      const pm = this.requirePackageManager()
-      let changed = false
-      for (const def of this.builtinPackages) {
-        const configured = pm
-          .listConfiguredPackages()
-          .find((pkg) => packageIdentity(pkg.source) === packageIdentity(def.source))
-        if (configured && configured.source === def.source && configured.installedPath) {
-          this.builtinStatus.set(def.id, { status: 'ok' })
-          continue
+  private reconcileBuiltins(): Promise<void> {
+    if (this.reconcileInFlight) return this.reconcileInFlight
+    this.treeReady = new Promise<void>((resolve) => {
+      this.treeReadyResolve = resolve
+    })
+    const run = async (): Promise<void> => {
+      let synced: BuiltinPackageDef[] = []
+      try {
+        const pm = this.requirePackageManager()
+        const configured = pm.listConfiguredPackages()
+        const stale: BuiltinPackageDef[] = []
+        for (const def of this.builtinPackages) {
+          const match = configured.find(
+            (pkg) => packageIdentity(pkg.source) === packageIdentity(def.source)
+          )
+          if (match && match.source === def.source && match.installedPath) {
+            this.builtinStatus.set(def.id, { status: 'ok' })
+          } else {
+            stale.push(def)
+          }
         }
-        // 缺失、未安装或版本与钉版不一致 → installAndPersist 原位覆盖（含升级）
-        this.builtinStatus.set(def.id, { status: 'installing' })
-        this.broadcastChanged('reconcile')
-        try {
-          await pm.installAndPersist(def.source)
-          this.builtinStatus.set(def.id, { status: 'ok' })
-          changed = true
-          logger.info(`内置包就绪: ${def.source}`)
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error)
+        if (stale.length > 0) {
+          for (const def of stale) this.builtinStatus.set(def.id, { status: 'installing' })
+          this.broadcastChanged('reconcile')
+          try {
+            // 离线落位：从随包预装树整树同步（无任何网络调用），成功后登记 source。
+            // 登记放在拷贝之后：拷贝失败不登记，pi 的 resolve 就不会尝试联网补装。
+            // 整树同步为全有或全无：任一目录损坏时全部 stale 包一并 failed（retry 可自愈），
+            // 与旧逐包独立安装语义不同，系有意取舍。
+            await syncBuiltinTree(
+              application.getPath('resources.agent', 'npm'),
+              join(this.agentDir, 'npm', 'node_modules')
+            )
+            for (const def of stale) {
+              pm.addSourceToSettings(def.source)
+            }
+            synced = stale
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            for (const def of stale) {
+              this.builtinStatus.set(def.id, { status: 'failed', error: message })
+            }
+            logger.error('内置包离线落位失败', error)
+          }
+        }
+      } catch (error) {
+        // 兜底：requirePackageManager/listConfiguredPackages 等意外抛错时，
+        // 不让状态停在 installing，也不产生 unhandled rejection
+        const message = error instanceof Error ? error.message : String(error)
+        for (const def of this.builtinPackages) {
           this.builtinStatus.set(def.id, { status: 'failed', error: message })
-          logger.error(`内置包安装失败: ${def.source}`, error)
+        }
+        logger.error('内置包 reconcile 异常', error)
+      } finally {
+        // sync+登记阶段落定（无论成败）：解除 createLoader 门控。
+        // 必须在 reloadAll 之前——reloadAll 会等待正处于门控上的 loader Promise，
+        // 若 loader 等的是包含 reloadAll 的完整 reconcile 即成环死锁。
+        this.treeReadyResolve?.()
+      }
+      if (synced.length > 0) {
+        // 先刷新已建 loader 再置 ok：避免 UI/冒烟读到「ok 但资源未就绪」的中间态
+        await this.reloadAll()
+        for (const def of synced) {
+          this.builtinStatus.set(def.id, { status: 'ok' })
+          logger.info(`内置包就绪: ${def.source}`)
         }
       }
-      if (changed) await this.reloadAll()
       this.broadcastChanged('reconcile')
-    } finally {
-      this.reconciling = false
+    }
+    this.reconcileInFlight = run().finally(() => {
+      this.reconcileInFlight = null
+    })
+    return this.reconcileInFlight
+  }
+
+  /** 修复离线内置树：用户包操作触发 pi 的 npm reify 会把离线同步的内置树当 extraneous 剪除，
+   *  操作完成后重跑一次整树同步即时修复。best-effort：失败仅记日志，下次启动 reconcile 会自愈。 */
+  private async repairBuiltinTree(): Promise<void> {
+    try {
+      // 等待进行中的 reconcile 落定，保证 syncBuiltinTree 的串行契约
+      await this.reconcileInFlight
+      await syncBuiltinTree(
+        application.getPath('resources.agent', 'npm'),
+        join(this.agentDir, 'npm', 'node_modules')
+      )
+    } catch (error) {
+      logger.error('修复内置树失败（下次启动 reconcile 将自愈）', error)
     }
   }
 
@@ -430,14 +500,37 @@ export class AgentResourceService {
     }
   }
 
+  /** 随包分发的内置技能根目录（resources/agent/skills，pi 按 SKILL.md 递归发现）。 */
+  private bundledSkillPaths(): string[] {
+    try {
+      const dir = application.getPath('resources.agent', 'skills')
+      readdirSync(dir)
+      return [dir]
+    } catch (error) {
+      logger.error('agent skills 目录读取失败，跳过内置技能', error)
+      return []
+    }
+  }
+
+  /** filePath 是否落在随包内置技能目录下（来源标签用）。 */
+  private isBundledSkill(filePath: string): boolean {
+    try {
+      const dir = application.getPath('resources.agent', 'skills')
+      return filePath === dir || filePath.startsWith(dir + sep)
+    } catch {
+      return false
+    }
+  }
+
   private findBuiltin(identity: string): BuiltinPackageDef | undefined {
     return this.builtinPackages.find((def) => packageIdentity(def.source) === identity)
   }
 }
 
-/** 技能来源标签：包随插件分发；项目技能当前恒不加载（trust=never）；其余为全局个人。 */
-function skillSourceLabel(skill: Skill): string {
+/** 技能来源标签：包随插件分发；内置随应用分发；项目技能当前恒不加载（trust=never）；其余为全局个人。 */
+function skillSourceLabel(skill: Skill, bundled: boolean): string {
   if (skill.sourceInfo.origin === 'package') return '插件'
+  if (bundled) return '内置'
   if (skill.sourceInfo.scope === 'project') return '项目'
   return '个人'
 }

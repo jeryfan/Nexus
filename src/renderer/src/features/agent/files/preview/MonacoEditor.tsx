@@ -1,6 +1,5 @@
 /**
- * Monaco 查看器/编辑器（文件预览面板，trimmed port of orca
- * src/renderer/src/components/editor/MonacoEditor.tsx）。
+ * Monaco 查看器/编辑器（文件预览面板）。
  *
  * 保留：`@monaco-editor/react` <Editor>、系统明暗主题（vs-dark/vs）、查看器
  * options、`path={filePath}` 一文件一模型、saveViewState={false} +
@@ -8,7 +7,7 @@
  * 重开同一文件时刷新缓存模型）、onContentChange 变更管线（propsRef 模式）与
  * Cmd/Ctrl+S 保存键绑定（Monaco addCommand → onSave）。
  * 裁剪：分屏回显抑制（Nexus 无 split pane）、自动保存、gutter 右键菜单、
- * markdown 批注、diff 支持、reveal/滚动恢复、orca settings store。
+ * markdown 批注、diff 支持、reveal/滚动恢复、settings store 联动。
  */
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import Editor from '@monaco-editor/react'
@@ -27,7 +26,7 @@ type MonacoEditorProps = {
    * 缺省时保持「总是同步」的旧行为（初始加载）。
    */
   expectedModelValue?: string
-  /** 用户编辑驱动的内容变更（orca handleChange；分屏回显抑制已裁剪） */
+  /** 用户编辑驱动的内容变更（分屏回显抑制已裁剪） */
   onContentChange?: (content: string) => void
   /** Cmd/Ctrl+S 保存（编辑器聚焦时经 Monaco 命令触发；未聚焦由外层兜底） */
   onSave?: () => void
@@ -36,7 +35,7 @@ type MonacoEditorProps = {
 /**
  * language-detect 可能返回未注册进 Monaco 的 id（mermaid/notebook/csv/tsv/nim
  * 等）。未注册的语言在 Monaco 里无 token provider，统一回退 plaintext
- * （对齐 orca 在 MonacoCodeExcerpt 中的 getLanguages 注册检查）。
+ * （getLanguages 注册检查）。
  */
 function resolveMonacoLanguage(language: string): string {
   return monaco.languages.getLanguages().some((item) => item.id === language)
@@ -58,7 +57,7 @@ export default function MonacoEditor({
   const isDark = theme === ThemeMode.dark
   const monacoLanguage = useMemo(() => resolveMonacoLanguage(language), [language])
 
-  // orca propsRef 模式（MonacoEditor.tsx:135-137）：渲染期同步赋值，
+  // propsRef 模式：渲染期同步赋值，
   // 保证 Monaco 回调（注册一次、长期存活）永远读到最新的 props。
   const propsRef = useRef({ onSave, onContentChange })
   propsRef.current = { onSave, onContentChange }
@@ -87,7 +86,7 @@ export default function MonacoEditor({
     model.setValue(content)
   }, [filePath, content, expectedModelValue])
 
-  // orca handleChange（MonacoEditor.tsx:660-680）裁剪版：无分屏/粘贴抑制，
+  // handleChange 裁剪版：无分屏/粘贴抑制，
   // 直接把变更转发给 onContentChange。
   const handleChange = useCallback((value: string | undefined): void => {
     if (value !== undefined) {
@@ -98,7 +97,7 @@ export default function MonacoEditor({
   const handleMount = useCallback(
     (editorInstance: monaco.editor.IStandaloneCodeEditor): void => {
       // Why: Cmd/Ctrl+S 注册为 Monaco 命令，仅在编辑器聚焦时触发
-      // （对齐 orca installEditorSaveShortcut 的语义，用 addCommand 实现）；
+      // （保存快捷键语义，用 addCommand 实现）；
       // 编辑器未聚焦的场景由 FilePreviewPanel 的 window 级监听兜底。
       editorInstance.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
         propsRef.current.onSave?.()

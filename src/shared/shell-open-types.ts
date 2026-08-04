@@ -1,6 +1,6 @@
 /**
- * Verbatim port of orca src/shared/shell-open-types.ts (self-contained, types only).
- * SSH/remote 相关类型一并保留以保持与 orca 同步；当前 Nexus 仅走本地分支。
+ * Self-contained, types only.
+ * SSH/remote 相关类型一并保留；当前 Nexus 仅走本地分支。
  */
 export type ShellOpenExternalEditorRequest = {
   path: string

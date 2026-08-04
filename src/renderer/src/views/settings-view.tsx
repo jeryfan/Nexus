@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { ArrowLeft, Bot, Palette, Puzzle, Search, Settings2 } from 'lucide-react'
+import { ArrowLeft, Bot, Globe, Palette, Puzzle, Search, Settings2 } from 'lucide-react'
 import { cn } from '@renderer/lib/utils'
 import { Shell } from '@renderer/components/shell'
+import { BrowserSettingsPane } from '@renderer/features/browser/settings/BrowserSettingsPane'
 import PluginSettingsPage from '@renderer/pages/settings/PluginSettings/PluginSettingsPage'
 import ProviderSettingsPage from '@renderer/pages/settings/ProviderSettings/ProviderSettingsPage'
 import { useNavigationStore } from '@renderer/stores/navigation'
@@ -10,6 +11,7 @@ import { useNavigationStore } from '@renderer/stores/navigation'
 const SECTIONS = [
   { id: 'model-services', label: '模型服务', icon: Bot },
   { id: 'agent', label: '插件', icon: Puzzle },
+  { id: 'browser', label: '浏览器', icon: Globe },
   { id: 'general', label: '常规', icon: Settings2 },
   { id: 'appearance', label: '外观', icon: Palette }
 ] as const
@@ -85,8 +87,15 @@ function SettingsView(): React.JSX.Element {
           <ProviderSettingsPage />
         </div>
       ) : active === 'agent' ? (
-        <div className="app-no-drag h-full min-h-0 overflow-hidden">
+        // Why: flex flex-col —— SettingsContentColumn 靠 flex-1 + min-h-0 + overflow-y-auto 内部滚动，
+        // 父容器必须是 flex 才能限高（否则内容被 overflow-hidden 裁掉、无法滚动）。
+        <div className="app-no-drag flex h-full min-h-0 flex-col overflow-hidden">
           <PluginSettingsPage />
+        </div>
+      ) : active === 'browser' ? (
+        // 同 agent 分区：flex flex-col 使 SettingsContentColumn 的内部滚动生效。
+        <div className="app-no-drag flex h-full min-h-0 flex-col overflow-hidden">
+          <BrowserSettingsPane />
         </div>
       ) : (
         <div className="h-full overflow-y-auto px-10 py-8">

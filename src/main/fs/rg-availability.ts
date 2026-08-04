@@ -1,5 +1,5 @@
 /**
- * 移植自 orca src/main/ipc/rg-availability.ts：去掉 WSL 分支（wslAwareSpawn → 本地 spawn）。
+ * rg 可用性探测：仅本地 spawn（无 WSL 分支）。
  */
 import { spawn } from 'node:child_process'
 

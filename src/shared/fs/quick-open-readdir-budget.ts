@@ -1,5 +1,5 @@
-// orca 中该值来自 quick-open-listing-limits.ts（QUICK_OPEN_LISTING_MAX_RESULTS）；
-// 本移植未拷贝 listing-limits（其顺带依赖 GrowingByteBuffer），此处直接内联。
+// quick-open 列表上限在此直接内联（独立的 listing-limits 模块会顺带引入
+// GrowingByteBuffer 依赖）。
 export const QUICK_OPEN_READDIR_MAX_FILES = 20_001
 export const QUICK_OPEN_READDIR_MAX_ENTRIES = 50_000
 export const QUICK_OPEN_READDIR_MAX_DIRECTORIES = 25_000

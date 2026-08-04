@@ -17,6 +17,8 @@ export interface PanelTab {
   filePath?: string
   /** 预览标签（单击打开）：会被下一个预览标签原位替换；双击固化后清除 */
   isPreview?: boolean
+  /** 自定义标签标题（浏览器标签标题来自 BrowserWorkspace，随页面标题更新） */
+  label?: string
 }
 
 interface ProjectPanelState {
@@ -43,14 +45,16 @@ interface ProjectPanelState {
   toggleTreeVisible: () => void
   /** 设置文件树区域宽度，自动限制在 [最小值, 最大值] 区间 */
   setTreeWidth: (width: number) => void
-  /** 打开一个标签页并激活（同类型允许多开） */
-  openTab: (type: PanelTabType) => void
+  /** 打开一个标签页并激活（同类型允许多开）。options.id 供浏览器标签复用 BrowserWorkspace.id；label 为自定义标题 */
+  openTab: (type: PanelTabType, options?: { id?: string; label?: string }) => void
+  /** 重命名标签标题（浏览器标签随页面标题更新） */
+  renameTab: (id: string, label: string) => void
   /**
    * 打开文件标签并激活。同 filePath 已存在时仅激活；
    * 若该标签仍为预览且本次 preview=false，则同时固化（清除 isPreview，
-   * 对齐 orca editor slice openFile 的 existing-tab + non-preview 语义，供双击固化使用）。
+   * 按 existing-tab + non-preview 语义处理，供双击固化使用）。
    * 默认 preview=true —— 已有预览文件标签会被新标签原位替换
-   * （对齐 orca editor slice openFile 的 isPreview 替换语义）。
+   * （isPreview 替换语义）。
    */
   openFileTab: (filePath: string, options?: { preview?: boolean }) => void
   /** 清除预览标记（双击固化预览标签） */
@@ -76,16 +80,36 @@ export const useProjectPanelStore = create<ProjectPanelState>((set) => ({
   toggleTreeVisible: () => set((state) => ({ treeVisible: !state.treeVisible })),
   setTreeWidth: (width) =>
     set({ treeWidth: Math.min(TREE_MAX_WIDTH, Math.max(TREE_MIN_WIDTH, width)) }),
-  openTab: (type) =>
+  openTab: (type, options) =>
     set((state) => {
       // 「打开文件」页唯一：已存在时仅激活（重复点菜单「文件」不多开）
       if (type === 'file-browser') {
         const existing = state.tabs.find((tab) => tab.type === 'file-browser')
         if (existing) return { activeTabId: existing.id }
       }
-      const tab: PanelTab = { id: crypto.randomUUID(), type }
+      // 带显式 id 幂等：同 id 标签已存在（浏览器标签 id === BrowserWorkspace.id，
+      // panelBridge.openBrowserTab 可能重复调用）时仅激活并更新 label，不插入重复标签
+      if (options?.id) {
+        const existing = state.tabs.find((tab) => tab.id === options.id)
+        if (existing) {
+          return {
+            tabs:
+              options.label !== undefined
+                ? state.tabs.map((tab) =>
+                    tab.id === options.id ? { ...tab, label: options.label } : tab
+                  )
+                : state.tabs,
+            activeTabId: existing.id
+          }
+        }
+      }
+      const tab: PanelTab = { id: options?.id ?? crypto.randomUUID(), type, label: options?.label }
       return { tabs: [...state.tabs, tab], activeTabId: tab.id }
     }),
+  renameTab: (id, label) =>
+    set((state) => ({
+      tabs: state.tabs.map((tab) => (tab.id === id ? { ...tab, label } : tab))
+    })),
   openFileTab: (filePath, options) =>
     set((state) => {
       const existing = state.tabs.find((tab) => tab.type === 'file' && tab.filePath === filePath)
@@ -157,7 +181,7 @@ export const useProjectPanelStore = create<ProjectPanelState>((set) => ({
       } else {
         delete dirtyTabIds[id]
       }
-      // 对齐 orca editor slice markFileDirty 的 needsPreviewClear：预览标签
+      // needsPreviewClear 语义：预览标签
       // 一旦变 dirty 即固化，避免被下一个预览标签原位替换导致草稿丢失
       const tabs = dirty
         ? state.tabs.map((tab) => (tab.id === id && tab.isPreview ? { ...tab, isPreview: false } : tab))

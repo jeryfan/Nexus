@@ -1,7 +1,7 @@
 /**
- * 移植自 orca src/main/ipc/filesystem-list-files.ts（listQuickOpenFiles）：
- * 本地专用 —— 去掉 resolveAuthorizedPath/store、SSH connectionId、WSL 路由
- * （wslAwareSpawn → 本地 spawn）与嵌套 worktree excludePaths（Nexus 路由无此入参）。
+ * 本地专用文件列举（listQuickOpenFiles）：无 resolveAuthorizedPath/store、
+ * SSH connectionId 与 WSL 路由（直接本地 spawn），也不接受嵌套 worktree
+ * excludePaths（Nexus 路由无此入参）。
  */
 import { sep } from 'node:path'
 import { spawn, type ChildProcess } from 'node:child_process'
@@ -18,7 +18,7 @@ import { listFilesWithGit } from './list-files-git-fallback'
 
 const RG_LIST_TIMEOUT_MS = 10_000
 
-/** 简化自 orca shared/quick-open-install-rg.ts：仅保留平台级安装建议。 */
+/** rg 缺失时给出平台级安装建议。 */
 function buildInstallRgMessage(cause: unknown): string {
   const reason = cause instanceof Error ? cause.message : String(cause)
   const cmd =

@@ -1,6 +1,6 @@
 /**
- * VS Code 启动器识别（ported from orca src/shared/vscode-remote-ssh-launcher.ts，
- * 仅保留本地分支使用的 isVsCodeLauncherExecutable；SSH remote 判定未迁移）。
+ * VS Code 启动器识别（仅保留本地分支使用的 isVsCodeLauncherExecutable；
+ * SSH remote 判定未迁移）。
  */
 const VSCODE_LAUNCHER_NAMES = new Set(['code', 'code-insiders', 'code - insiders'])
 

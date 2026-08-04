@@ -140,9 +140,8 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
     const lists = unwrap(await agentApi.getSessionLists())
     set({ projects: lists.projects, chats: lists.chats })
 
-    // 恢复最近会话
-    const latest = latestSessionId(lists.projects, lists.chats)
-    if (latest) await get().openSession(latest)
+    // Why: 启动时始终进入新会话（草稿），不自动跳转上次会话——历史会话经侧栏手动打开。
+    get().createSession()
   },
 
   createSession: (cwd) => {

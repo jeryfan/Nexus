@@ -48,8 +48,8 @@ export function isFileExplorerNameFilterQueryTooLarge(
   return value.length > maxBytes || measureUtf8ByteLength(value, maxBytes) > maxBytes
 }
 
-// Why: orca shared/clipboard-text measureClipboardTextByteLength, trimmed to the
-// stop-after-bytes early-exit form the name-filter size guard needs.
+// Why: byte-length measurement with a stop-after-bytes early exit, the form
+// the name-filter size guard needs.
 function measureUtf8ByteLength(text: string, stopAfterBytes: number): number {
   let byteLength = 0
   for (let index = 0; index < text.length; index += 1) {

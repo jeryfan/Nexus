@@ -2,6 +2,7 @@ appId: com.electron.app
 productName: nexus-scaffold
 directories:
   buildResources: build
+beforePack: ./scripts/beforePack.mjs
 files:
   - '!**/.vscode/*'
   - '!src/*'
@@ -16,6 +17,14 @@ asarUnpack:
   - '**/node_modules/@earendil-works/**'
   - '**/node_modules/@silvia-odwyer/**'
   - '**/node_modules/@mariozechner/**'
+  # nexus CLI（tsc 编译非 bundle，ELECTRON_RUN_AS_NODE 启动，asar 内依赖不可见）；
+  # CLI 运行时外部依赖仅 zod（传输走 node:net，不依赖 ws；agent-browser 原生
+  # 二进制经 extraResources 映射到 Resources 根，不经 require）
+  - out/package.json
+  - out/cli/**
+  - out/shared/**
+  - '**/node_modules/zod/**'
+afterPack: ./build/afterPack.mjs
 extraResources:
   - from: resources/provider
     to: provider
@@ -25,12 +34,26 @@ extraResources:
     to: agent
 win:
   executableName: nexus-scaffold
+  extraResources:
+    # agent-browser 原生二进制（Resources 根，agent-browser-bridge resolveAgentBrowserBinary 约定）
+    - from: node_modules/agent-browser/bin/agent-browser-win32-x64.exe
+      to: agent-browser-win32-x64.exe
+    # CLI 启动 shim（Resources/bin/，cmd 版 ELECTRON_RUN_AS_NODE 方案）
+    - from: resources/win32/bin/nexus.cmd
+      to: bin/nexus.cmd
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  extraResources:
+    # agent-browser 原生二进制（Resources 根；beforePack 禁止交叉打包，${arch} 即构建机架构）
+    - from: node_modules/agent-browser/bin/agent-browser-darwin-${arch}
+      to: agent-browser-darwin-${arch}
+    # CLI 启动 shim（Resources/bin/nexus）
+    - from: resources/darwin/bin/nexus
+      to: bin/nexus
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
@@ -41,6 +64,13 @@ mac:
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
+  extraResources:
+    # agent-browser 原生二进制（Resources 根；beforePack 禁止交叉打包，${arch} 即构建机架构）
+    - from: node_modules/agent-browser/bin/agent-browser-linux-${arch}
+      to: agent-browser-linux-${arch}
+    # CLI 启动 shim（Resources/bin/nexus）
+    - from: resources/linux/bin/nexus
+      to: bin/nexus
   target:
     - AppImage
     - snap

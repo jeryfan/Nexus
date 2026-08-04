@@ -1,8 +1,7 @@
 import { create } from 'zustand'
 
 /**
- * 文件树展开/过滤状态（移植自 orca editor slice 的 file explorer 部分，
- * 原 `Record<worktreeId, Set<string>>` 改为 `Record<rootPath, string[]>`：
+ * 文件树展开/过滤状态（原 `Record<worktreeId, Set<string>>` 改为 `Record<rootPath, string[]>`：
  * 以项目根路径为 key，数组替代 Set 以保证可序列化）。
  */
 interface FileExplorerState {

@@ -1,9 +1,9 @@
 /**
- * 外部编辑器启动（ported from orca src/main/external-editor-launch.ts）。
+ * 外部编辑器启动。
  *
  * 仅保留 LOCAL 分支：resolveExternalEditorLaunchSpec + launchExternalEditor。
  * SSH/remote 分支（resolveVsCodeRemoteSshLaunchSpec，--remote ssh-remote+...）
- * 未迁移；orca 的 ./codex-cli/command 与 ./win32-utils 依赖分别由
+ * 未迁移；CLI 命令解析与 Windows batch 启动分别由
  * ../shared/node-cli-command-resolution 与 ../shared/windows-batch-spawn 提供。
  */
 import { spawn } from 'node:child_process'

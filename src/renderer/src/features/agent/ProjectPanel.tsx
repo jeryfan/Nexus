@@ -1,3 +1,4 @@
+import type { BrowserWorkspace } from '@shared/browser/types'
 import { TooltipIconButton } from '@renderer/components/assistant-ui/tooltip-icon-button'
 import {
   DropdownMenu,
@@ -7,11 +8,17 @@ import {
 } from '@renderer/components/ui/dropdown-menu'
 import { TooltipProvider } from '@renderer/components/ui/tooltip'
 import { cn } from '@renderer/lib/utils'
+import { useBrowserStore } from '@renderer/stores/browser'
 import {
   useProjectPanelStore,
   type PanelTab,
   type PanelTabType
 } from '@renderer/stores/projectPanel'
+import BrowserPane from '../browser/pane/BrowserPane'
+import { registerBrowserOverlaySlotViewport } from '../browser/pane/browser-page-viewport'
+import { translate } from '../browser/i18n'
+import { BROWSER_SETTINGS_DEFAULTS } from '../browser/settings-defaults'
+import { useAgentStore } from './agentStore'
 import {
   FileIcon,
   FolderIcon,
@@ -26,7 +33,7 @@ import {
   XIcon,
   type LucideIcon
 } from 'lucide-react'
-import { useState, type FC } from 'react'
+import { useCallback, useEffect, useState, type FC } from 'react'
 import { FileTreeDock, TreeToggleButton } from './files/explorer/FileTreeDock'
 import { getFileTypeIcon } from './files/lib/file-type-icons'
 import { basename } from './files/lib/path'
@@ -54,9 +61,11 @@ function tabIcon(type: PanelTabType): LucideIcon {
   return PANEL_TAB_TYPES.find((item) => item.type === type)?.icon ?? SquarePlusIcon
 }
 
-/** 标签页名称：文件标签取文件名，菜单标签取入口名 */
+/** 标签页名称：优先自定义 label（浏览器标签），文件标签取文件名，菜单标签取入口名 */
 function getTabLabel(tab: PanelTab): string {
-  return tab.type === 'file' && tab.filePath ? basename(tab.filePath) : tabLabel(tab.type)
+  return (
+    tab.label ?? (tab.type === 'file' && tab.filePath ? basename(tab.filePath) : tabLabel(tab.type))
+  )
 }
 
 /** 标签页图标：文件标签按文件类型推断，菜单标签取入口图标 */
@@ -75,13 +84,38 @@ function useOpenFileBrowser(): () => void {
   }
 }
 
-/** 单个标签页：图标 + 名称 + 关闭 ×；点击激活；预览文件标签斜体（orca 惯例）；
- *  有未保存修改时关闭位显示圆点（hover 时 reveal ×，对齐 orca EditorFileTab） */
+/** 点击菜单「浏览器」：经 browser store 新建浏览器标签（面板标签由 slice 尾部
+ *  panelBridge.openBrowserTab 打开，openTab 对 options.id 幂等，此处不得再调 panelBridge）。 */
+function useOpenBrowserTab(): () => void {
+  const sessionId = useAgentStore((s) => s.activeSessionId)
+  return () => {
+    if (!sessionId) return
+    // Task 9 审查定案：createBrowserTab 尾部已调 panelBridge.openBrowserTab
+    // （openTab 对 options.id 幂等），此处不得再调 panelBridge。
+    const defaultUrl = BROWSER_SETTINGS_DEFAULTS.browserDefaultUrl ?? 'about:blank'
+    useBrowserStore.getState().createBrowserTab(sessionId, defaultUrl, {
+      title: translate('auto.store.slices.browser.d175274b6d', 'New Browser Tab'),
+      focusAddressBar: true
+    })
+  }
+}
+
+/** 单个标签页：图标 + 名称 + 关闭 ×；点击激活；预览文件标签斜体；
+ *  有未保存修改时关闭位显示圆点（hover 时 reveal ×） */
 const TabButton: FC<{ tab: PanelTab; active: boolean }> = ({ tab, active }) => {
   const setActiveTab = useProjectPanelStore((s) => s.setActiveTab)
   const closeTab = useProjectPanelStore((s) => s.closeTab)
   const dirty = useProjectPanelStore((s) => s.dirtyTabIds[tab.id] === true)
   const Icon = getTabIcon(tab)
+  const handleClose = (): void => {
+    // browser 标签走 browser store 关闭：否则 BrowserWorkspace 残留 store（持久化后重启复活）。
+    // slice 尾部自带 panelBridge.closeTab（存在性检查，闭环幂等），面板标签随之同步移除。
+    if (tab.type === 'browser') {
+      useBrowserStore.getState().closeBrowserTab(tab.id)
+      return
+    }
+    closeTab(tab.id)
+  }
   return (
     <div
       className={cn(
@@ -97,7 +131,7 @@ const TabButton: FC<{ tab: PanelTab; active: boolean }> = ({ tab, active }) => {
         <Icon className="text-muted-foreground size-3.5 shrink-0" />
         <span className={cn('truncate', tab.isPreview && 'italic')}>{getTabLabel(tab)}</span>
       </button>
-      {/* dirty 圆点与关闭 × 共用同一槽位（orca EditorFileTabCloseButton 语义）：
+      {/* dirty 圆点与关闭 × 共用同一槽位：
           dirty 时显示圆点，hover 标签时换成 ×，避免宽度抖动 */}
       <div className="relative flex size-4 shrink-0 items-center justify-center">
         {dirty && (
@@ -106,7 +140,7 @@ const TabButton: FC<{ tab: PanelTab; active: boolean }> = ({ tab, active }) => {
         <button
           type="button"
           aria-label="关闭标签页"
-          onClick={() => closeTab(tab.id)}
+          onClick={handleClose}
           className={cn(
             'hover:bg-muted-foreground/20 flex size-4 items-center justify-center rounded',
             dirty && 'hidden group-hover:flex'
@@ -123,6 +157,14 @@ const TabButton: FC<{ tab: PanelTab; active: boolean }> = ({ tab, active }) => {
 const AddTabMenu: FC = () => {
   const openTab = useProjectPanelStore((s) => s.openTab)
   const openFileBrowser = useOpenFileBrowser()
+  const openBrowserTab = useOpenBrowserTab()
+  const openEntry = (type: PanelTabType): void => {
+    if (type === 'browser') {
+      openBrowserTab()
+      return
+    }
+    openTab(type)
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -136,7 +178,7 @@ const AddTabMenu: FC = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         {PANEL_TAB_TYPES.slice(0, 2).map(({ type, label, icon: Icon, shortcut }) => (
-          <DropdownMenuItem key={type} onClick={() => openTab(type)} className="gap-2">
+          <DropdownMenuItem key={type} onClick={() => openEntry(type)} className="gap-2">
             <Icon className="text-muted-foreground size-4" />
             <span>{label}</span>
             {shortcut && <span className="text-muted-foreground ml-auto text-xs">{shortcut}</span>}
@@ -148,7 +190,7 @@ const AddTabMenu: FC = () => {
           <span className="text-muted-foreground ml-auto text-xs">{FILE_MENU_ENTRY.shortcut}</span>
         </DropdownMenuItem>
         {PANEL_TAB_TYPES.slice(2).map(({ type, label, icon: Icon, shortcut }) => (
-          <DropdownMenuItem key={type} onClick={() => openTab(type)} className="gap-2">
+          <DropdownMenuItem key={type} onClick={() => openEntry(type)} className="gap-2">
             <Icon className="text-muted-foreground size-4" />
             <span>{label}</span>
             {shortcut && <span className="text-muted-foreground ml-auto text-xs">{shortcut}</span>}
@@ -163,6 +205,7 @@ const AddTabMenu: FC = () => {
 const EmptyMenu: FC = () => {
   const openTab = useProjectPanelStore((s) => s.openTab)
   const openFileBrowser = useOpenFileBrowser()
+  const openBrowserTab = useOpenBrowserTab()
   const items: (
     | { kind: 'tab'; type: PanelTabType; label: string; icon: LucideIcon; shortcut?: string }
     | { kind: 'browser'; label: string; icon: LucideIcon; shortcut?: string }
@@ -175,9 +218,15 @@ const EmptyMenu: FC = () => {
     <div className="flex flex-1 flex-col justify-center gap-1 px-3">
       {items.map((item) => (
         <button
-          key={item.kind === 'tab' ? item.type : 'browser'}
+          key={item.kind === 'tab' ? item.type : 'file-menu'}
           type="button"
-          onClick={() => (item.kind === 'tab' ? openTab(item.type) : openFileBrowser())}
+          onClick={() =>
+            item.kind === 'tab'
+              ? item.type === 'browser'
+                ? openBrowserTab()
+                : openTab(item.type)
+              : openFileBrowser()
+          }
           className="hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm"
         >
           <item.icon className="text-muted-foreground size-4 shrink-0" />
@@ -216,9 +265,75 @@ const FileBrowserPanel: FC = () => {
   )
 }
 
+/** 常驻 browser 宿主槽位。webview 视口挂在槽位根下，
+ *  非激活时容器 hidden 但保留在 DOM——webview 经 webview-registry + slot viewport 保活，
+ *  BrowserPane chrome 可卸载/重挂载而不销毁 guest（pane 常驻、仅 CSS 隐藏）。 */
+const BrowserHostSlot: FC<{ workspace: BrowserWorkspace; visible: boolean }> = ({
+  workspace,
+  visible
+}) => {
+  const setSlotViewportRef = useCallback(
+    (node: HTMLDivElement | null): void => {
+      registerBrowserOverlaySlotViewport(workspace.id, node)
+    },
+    [workspace.id]
+  )
+  return (
+    <div
+      className={cn('absolute inset-0 flex min-h-0 flex-col', !visible && 'hidden')}
+      data-browser-overlay-tab-id={workspace.id}
+    >
+      <div ref={setSlotViewportRef} className="absolute inset-0 flex min-h-0 flex-col" />
+      {/* only the active pane mounts：隐藏槽位不挂载 BrowserPane，webview 由保活机制持有 */}
+      {visible ? <BrowserPane browserTab={workspace} isActive /> : null}
+    </div>
+  )
+}
+
+const EMPTY_BROWSER_WORKSPACES: readonly BrowserWorkspace[] = []
+
+/** 常驻 browser 宿主层：为当前会话的所有 browser workspace 渲染槽位容器（绝对定位铺满内容区），
+ *  激活的面板标签对应槽位可见。面板收起（open:false）时 ProjectPanel 整体不渲染（AgentPage
+ *  条件挂载）——此时 guest 仍会销毁，这是 Nexus 面板架构的既有限制，不做架构级修复。 */
+const BrowserHostLayer: FC = () => {
+  const sessionId = useAgentStore((s) => s.activeSessionId)
+  const workspaces = useBrowserStore((s) =>
+    sessionId ? (s.browserTabsByWorktree[sessionId] ?? EMPTY_BROWSER_WORKSPACES) : EMPTY_BROWSER_WORKSPACES
+  )
+  const activeTabId = useProjectPanelStore((s) => s.activeTabId)
+  const activeTabType = useProjectPanelStore(
+    (s) => s.tabs.find((t) => t.id === s.activeTabId)?.type
+  )
+
+  // 面板 browser 标签激活 → browser store 活跃态同步（panel.setActiveTab 不触达 browser
+  // store，notifyActiveTabChanged 依赖此同步）。slice 内建存在性守卫；已活跃时跳过，
+  // 避免标签状态更新换引用导致重复 notify。
+  useEffect(() => {
+    if (activeTabType === 'browser' && activeTabId) {
+      const state = useBrowserStore.getState()
+      if (state.activeBrowserTabId !== activeTabId) {
+        state.setActiveBrowserTab(activeTabId)
+      }
+    }
+  }, [activeTabType, activeTabId])
+
+  return (
+    <>
+      {workspaces.map((workspace) => (
+        <BrowserHostSlot
+          key={workspace.id}
+          workspace={workspace}
+          visible={activeTabType === 'browser' && activeTabId === workspace.id}
+        />
+      ))}
+    </>
+  )
+}
+
 /**
  * 标签页内容：file-browser → 「打开文件」页；file → 文件预览/编辑面板
- * （面包屑行内含文件树开关，树停靠在面包屑行之下）；其余菜单类型暂为占位。
+ * （面包屑行内含文件树开关，树停靠在面包屑行之下）；browser → 常驻宿主层
+ * （BrowserHostLayer）覆盖渲染，本分支返回 null；其余菜单类型暂为占位。
  * 注意 flex/min-h-0 链：Monaco automaticLayout 需要真实尺寸的有界父容器。
  */
 const TabContent: FC<{ tab: PanelTab }> = ({ tab }) => {
@@ -227,6 +342,10 @@ const TabContent: FC<{ tab: PanelTab }> = ({ tab }) => {
   }
   if (tab.type === 'file' && tab.filePath) {
     return <FilePreviewPanel filePath={tab.filePath} tabId={tab.id} />
+  }
+  if (tab.type === 'browser') {
+    // 内容区由 BrowserHostLayer 的可见槽位覆盖（槽位 absolute 铺满，保活所需）。
+    return null
   }
   return (
     <div className="text-muted-foreground flex flex-1 items-center justify-center text-sm">
@@ -272,7 +391,7 @@ export const ProjectPanel: FC<{ maximized: boolean }> = ({ maximized }) => {
 
   const activeTab = tabs.find((tab) => tab.id === activeTabId) ?? null
 
-  // orca 移植的组件（FileExplorerToolbar 等）直接使用裸 Tooltip，依赖外层 Provider
+  // FileExplorerToolbar 等组件直接使用裸 Tooltip，依赖外层 Provider
   return (
     <TooltipProvider delayDuration={0}>
       <aside
@@ -316,9 +435,10 @@ export const ProjectPanel: FC<{ maximized: boolean }> = ({ maximized }) => {
           </div>
         </div>
 
-        {/* 主体：标签页内容（无标签时只有菜单列表） */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        {/* 主体：标签页内容（无标签时只有菜单列表）；browser 宿主层常驻覆盖（槽位保活 webview） */}
+        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
           {activeTab ? <TabContent tab={activeTab} /> : <EmptyMenu />}
+          <BrowserHostLayer />
         </div>
 
         {/* 左缘拖拽手柄：5px 热区 + 1px 高亮线（最大化时隐藏） */}

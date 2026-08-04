@@ -78,9 +78,9 @@ export function useFileExplorerHandlers({
       if (!rootPath || node.isDirectory) {
         return
       }
-      // Why: orca editor.ts openFile semantics — an existing preview tab opened
-      // with preview:false becomes permanent (projectPanel.openFileTab clears
-      // isPreview for the existing-tab case).
+      // Why: opening with preview:false makes an existing preview tab
+      // permanent (projectPanel.openFileTab clears isPreview for the
+      // existing-tab case).
       openFileTab(node.path, { preview: false })
     },
     [rootPath, openFileTab]

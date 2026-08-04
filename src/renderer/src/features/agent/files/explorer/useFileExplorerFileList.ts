@@ -8,10 +8,10 @@ export type FileListState = {
 }
 
 /**
- * Name-filter data source (orca `useRuntimeFileListForWorktree`, adapted):
+ * Name-filter data source:
  * recursively lists root-relative file paths via `fsClient.listFiles`.
- * Local-only, so orca's operation-owner routing, nested-worktree exclusion,
- * and host-side cancel token are dropped.
+ * Local-only, so operation-owner routing, nested-worktree exclusion,
+ * and host-side cancel token are not needed here.
  */
 export function useFileExplorerFileList({
   enabled,

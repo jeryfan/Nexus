@@ -4,6 +4,8 @@ packages:
 allowBuilds:
   # pi-coding-agent 引入的可选构建脚本，SDK 路径不需要，显式禁止
   '@google/genai': false
+  # postinstall 确保平台原生二进制存在且带可执行权限
+  agent-browser: true
   better-sqlite3: true
   electron: true
   electron-winstaller: false

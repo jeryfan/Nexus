@@ -14,7 +14,9 @@ import { CheckIcon, CopyIcon } from 'lucide-react'
 
 import { TooltipIconButton } from '@renderer/components/assistant-ui/tooltip-icon-button'
 import { selectActiveCwd, useAgentStore } from '@renderer/features/agent/agentStore'
+import { ipcApi } from '@renderer/ipc/ipcApi'
 import { cn } from '@renderer/lib/utils'
+import { useBrowserStore } from '@renderer/stores/browser'
 import { useProjectPanelStore } from '@renderer/stores/projectPanel'
 
 /**
@@ -41,6 +43,18 @@ function openLocalFileInPanel(path: string): void {
   const panel = useProjectPanelStore.getState()
   if (!panel.open) panel.toggleOpen()
   panel.openFileTab(path, { preview: true })
+}
+
+/** 点击 http(s) 链接：优先在内置浏览器打开（当前项目会话建标签），
+ *  无项目会话（草稿/无 cwd，面板不渲染）时回退系统浏览器。 */
+function openHttpLink(url: string): void {
+  const state = useAgentStore.getState()
+  const sessionId = state.activeSessionId
+  if (sessionId && selectActiveCwd(state) !== null) {
+    useBrowserStore.getState().createBrowserTab(sessionId, url, { title: url })
+  } else {
+    void ipcApi.request('shell.openUrl', { url })
+  }
 }
 
 const MarkdownTextImpl = () => {
@@ -164,6 +178,14 @@ const defaultComponents = memoizeMarkdownComponents({
         if (path) {
           event.preventDefault()
           openLocalFileInPanel(path)
+          return
+        }
+        // Why: http(s) 链接在内置浏览器打开（无项目会话时回退系统浏览器）。
+        // 不拦截的话默认行为会让主窗口直接导航，整个应用被带走（白屏事故）；
+        // 主进程 will-navigate 守卫是第二道防线。
+        if (href && /^https?:\/\//.test(href)) {
+          event.preventDefault()
+          openHttpLink(href)
         }
       }}
       {...props}

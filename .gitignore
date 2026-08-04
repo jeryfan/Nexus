@@ -140,3 +140,7 @@ vite.config.ts.timestamp-*
 .vite/
 
 .DS_Store
+
+# 内置 pi 包预装树（pnpm agent:builtins 生成；package-lock.json 提交以保证可复现，其余勿提交）
+resources/agent/npm/*
+!resources/agent/npm/package-lock.json

@@ -1,8 +1,8 @@
 /**
- * Filesystem IPC handlers (file-explorer domain, ported from orca
- * src/main/ipc/filesystem.ts). Local-only: orca's resolveAuthorizedPath /
- * connectionId / SSH-provider layer is dropped — paths are `resolve()`d and
- * fs errors propagate to the renderer via the router's error envelope.
+ * Filesystem IPC handlers (file-explorer domain). Local-only: the
+ * resolveAuthorizedPath / connectionId / SSH-provider layer is dropped —
+ * paths are `resolve()`d and fs errors propagate to the renderer via the
+ * router's error envelope.
  */
 import { open, readdir, readFile as fsReadFile, lstat, stat, writeFile as fsWriteFile } from 'node:fs/promises'
 import { extname, resolve } from 'node:path'
@@ -42,7 +42,7 @@ async function isBinaryFilePrefix(filePath: string): Promise<boolean> {
 }
 
 // Why: following a symlink in readDir can touch macOS TCC-protected containers;
-// treat links as file-like until explicitly opened (orca isDirectoryEntry).
+// treat links as file-like until explicitly opened.
 function isDirectoryEntry(entry: {
   isDirectory(): boolean
   isSymbolicLink(): boolean
@@ -119,7 +119,7 @@ export const fsHandlers: IpcHandlersFor<typeof fsRequestSchemas> = {
 
   'fs.writeFile': async (input) => {
     const filePath = resolve(input.filePath)
-    // orca fs:writeFile 本地分支（filesystem.ts:816-844）：目录拒写；
+    // fs.writeFile 本地分支：目录拒写；
     // ENOENT（目标尚不存在的新文件）放行，由 writeFile 创建。
     try {
       const fileStats = await lstat(filePath)

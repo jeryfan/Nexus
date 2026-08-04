@@ -1,4 +1,4 @@
-/** Ported from orca src/main/editor-launcher-name.ts (verbatim，外部编辑器启动依赖)。 */
+/** 外部编辑器启动依赖：launcher 命令名解析。 */
 import { basename, win32 } from 'node:path'
 
 export function stripMatchingQuotes(value: string): string {
