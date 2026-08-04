@@ -40,13 +40,17 @@ import { basename } from './files/lib/path'
 import { FilePreviewPanel } from './files/preview/FilePreviewPanel'
 
 /** 「+」菜单/空态列表中打开标签页的入口；shortcut 仅为展示提示（未绑定快捷键） */
-const PANEL_TAB_TYPES: { type: PanelTabType; label: string; icon: LucideIcon; shortcut?: string }[] =
-  [
-    { type: 'review', label: '审阅', icon: SquarePlusIcon, shortcut: '^⇧G' },
-    { type: 'terminal', label: '终端', icon: SquareTerminalIcon },
-    { type: 'browser', label: '浏览器', icon: GlobeIcon, shortcut: '⌘T' },
-    { type: 'chat', label: '侧边聊天', icon: MessageCirclePlusIcon, shortcut: '⌥⌘S' }
-  ]
+const PANEL_TAB_TYPES: {
+  type: PanelTabType
+  label: string
+  icon: LucideIcon
+  shortcut?: string
+}[] = [
+  { type: 'review', label: '审阅', icon: SquarePlusIcon, shortcut: '^⇧G' },
+  { type: 'terminal', label: '终端', icon: SquareTerminalIcon },
+  { type: 'browser', label: '浏览器', icon: GlobeIcon, shortcut: '⌘T' },
+  { type: 'chat', label: '侧边聊天', icon: MessageCirclePlusIcon, shortcut: '⌥⌘S' }
+]
 
 /** 「文件」入口：打开「打开文件」标签页并展示文件树 */
 const FILE_MENU_ENTRY = { label: '文件', icon: FolderIcon, shortcut: '⌘P' }
@@ -298,7 +302,9 @@ const EMPTY_BROWSER_WORKSPACES: readonly BrowserWorkspace[] = []
 const BrowserHostLayer: FC = () => {
   const sessionId = useAgentStore((s) => s.activeSessionId)
   const workspaces = useBrowserStore((s) =>
-    sessionId ? (s.browserTabsByWorktree[sessionId] ?? EMPTY_BROWSER_WORKSPACES) : EMPTY_BROWSER_WORKSPACES
+    sessionId
+      ? (s.browserTabsByWorktree[sessionId] ?? EMPTY_BROWSER_WORKSPACES)
+      : EMPTY_BROWSER_WORKSPACES
   )
   const activeTabId = useProjectPanelStore((s) => s.activeTabId)
   const activeTabType = useProjectPanelStore(
@@ -358,9 +364,11 @@ const TabContent: FC<{ tab: PanelTab }> = ({ tab }) => {
  * 项目面板：仅本地项目会话渲染（AgentPage 保证仅在 cwd 非空且 open 时挂载）。
  * 顶部标签栏（标签页 + 「+」菜单 + 最大化/收起按钮），主体为标签页内容；
  * 无标签页时只显示菜单列表。面板宽度由 AgentPage 的 react-resizable-panels
- * 分隔条调整（最大化时占满内容区，无分隔条）。
+ * 分隔条调整；最大化时 AgentPage 折叠对话区，本面板占满内容区。
  */
-export const ProjectPanel: FC<{ maximized?: boolean }> = ({ maximized = false }) => {
+export const ProjectPanel: FC = () => {
+  // 最大化图标/tooltip 随 store 状态切换（面板不再因最大化重挂载，直接读 store）
+  const maximized = useProjectPanelStore((s) => s.maximized)
   const tabs = useProjectPanelStore((s) => s.tabs)
   const activeTabId = useProjectPanelStore((s) => s.activeTabId)
   const toggleOpen = useProjectPanelStore((s) => s.toggleOpen)
@@ -371,12 +379,7 @@ export const ProjectPanel: FC<{ maximized?: boolean }> = ({ maximized = false })
   // FileExplorerToolbar 等组件直接使用裸 Tooltip，依赖外层 Provider
   return (
     <TooltipProvider delayDuration={0}>
-      <aside
-        className={cn(
-          'bg-background relative flex min-w-0 flex-col overflow-hidden rounded-lg',
-          maximized ? 'flex-1' : 'h-full w-full'
-        )}
-      >
+      <aside className="bg-background relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-lg">
         {/* 标签栏：标签页 + 「+」菜单（无标签时只留右侧按钮）；pr-4 与对话头部 px-4 对齐，使 PanelRight 开合面板时位置不动 */}
         <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto pr-4 pl-2">
           {tabs.map((tab) => (

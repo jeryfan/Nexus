@@ -57,9 +57,10 @@
   `panelRef.collapse()/expand()` 命令式驱动；`window-controls.tsx` 读 `collapsed`
   的现有逻辑不变。
 - 面板统一 `groupResizeBehavior="preserve-pixel-size"`，保持现有像素语义。
-- `maximized` 沿用现策略：卸载对话区 Panel、项目面板占满；v4 支持条件渲染 Panel，
-  恢复时布局自动还原。若还原有偏差，用 `useDefaultLayout` 的 `panelIds` 参数显式
-  声明布局集。
+- 挂载语义对齐旧实现（Task 3 审查修正）：对话区**始终挂载**，面板开合不得使其重挂载
+  （滚动/焦点/折叠状态）；最大化 = 对话 Panel 命令式折叠到 0 + 内容 `hidden` 类隐藏
+  （保留组件状态，旧策略即 `hidden` 而非卸载）；项目面板仅随 `open` 条件挂载
+  （关闭销毁 webview guest 为既有已记录限制，不做架构级修复），最大化切换不重挂载。
 
 ## webview 吞事件防护
 

@@ -81,7 +81,7 @@ describe('ProjectPanel browser tab close', () => {
   })
 
   it('removes the BrowserWorkspace and the panel tab together', () => {
-    render(<ProjectPanel maximized={false} />)
+    render(<ProjectPanel />)
 
     const tabRoot = screen.getByText('Example').closest('.group')
     expect(tabRoot).not.toBeNull()
