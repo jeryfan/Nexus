@@ -78,8 +78,9 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
           setCollapsed(sidebarPanelRef.current?.isCollapsed() ?? false)
         }}
       >
-        {/* 分隔线由 ResizableSeparator 提供，这里不再画 border-r，避免双线 */}
-        <div className="bg-sidebar relative flex h-full flex-col">
+        {/* 分隔线由 ResizableSeparator 提供，这里不再画 border-r，避免双线；
+            overflow-hidden 对齐旧 aside：内容超宽时裁切而非出横向滚动条 */}
+        <div className="bg-sidebar relative flex h-full flex-col overflow-hidden">
           {/* 顶部拖拽区：窗口化时避让左侧红绿灯，全屏时贴到最左 */}
           <div
             className={cn(
