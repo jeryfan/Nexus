@@ -91,41 +91,19 @@ export interface ToolResultMessageDto {
 
 export type AgentMessageDto = UserMessageDto | AssistantMessageDto | ToolResultMessageDto
 
-// ── Streaming events (mirror pi AssistantMessageEvent) ───────────────────────
-
-export type AssistantMessageEventDto =
-  | { type: 'start'; partial: AssistantMessageDto }
-  | { type: 'text_start'; contentIndex: number; partial: AssistantMessageDto }
-  | { type: 'text_delta'; contentIndex: number; delta: string; partial: AssistantMessageDto }
-  | { type: 'text_end'; contentIndex: number; content: string; partial: AssistantMessageDto }
-  | { type: 'thinking_start'; contentIndex: number; partial: AssistantMessageDto }
-  | { type: 'thinking_delta'; contentIndex: number; delta: string; partial: AssistantMessageDto }
-  | { type: 'thinking_end'; contentIndex: number; content: string; partial: AssistantMessageDto }
-  | { type: 'toolcall_start'; contentIndex: number; partial: AssistantMessageDto }
-  | { type: 'toolcall_delta'; contentIndex: number; delta: string; partial: AssistantMessageDto }
-  | {
-      type: 'toolcall_end'
-      contentIndex: number
-      toolCall: ToolCallPartDto
-      partial: AssistantMessageDto
-    }
-  | { type: 'done'; reason: 'stop' | 'length' | 'toolUse'; message: AssistantMessageDto }
-  | { type: 'error'; reason: 'aborted' | 'error'; error: AssistantMessageDto }
-
 // ── Session events (mirror pi AgentSessionEvent, UI-relevant subset) ─────────
+// 载荷按渲染层实际消费裁剪：message_update 不带 pi 的 assistantMessageEvent
+//（partial 与 message 是同一累积文本的第二份拷贝，reducer 只读 message）；
+// agent_end 不带 messages（reducer 只读 willRetry）。裁剪在 AgentEventBridge 完成。
 
 export type AgentEventDto =
   | { type: 'agent_start' }
-  | { type: 'agent_end'; messages: AgentMessageDto[]; willRetry: boolean }
+  | { type: 'agent_end'; willRetry: boolean }
   | { type: 'agent_settled' }
   | { type: 'turn_start' }
   | { type: 'turn_end'; message: AgentMessageDto; toolResults: ToolResultMessageDto[] }
   | { type: 'message_start'; message: AgentMessageDto }
-  | {
-      type: 'message_update'
-      message: AgentMessageDto
-      assistantMessageEvent: AssistantMessageEventDto
-    }
+  | { type: 'message_update'; message: AgentMessageDto }
   | { type: 'message_end'; message: AgentMessageDto }
   | { type: 'tool_execution_start'; toolCallId: string; toolName: string; args: unknown }
   | {
@@ -171,6 +149,8 @@ export interface ModelInfoDto extends ModelRefDto {
   name: string
   reasoning: boolean
   contextWindow: number
+  /** 模型自带的默认思考程度（来自 registry reasoning.defaultEffort）；可能缺省 */
+  defaultEffort?: string
 }
 
 export interface SessionSummaryDto {

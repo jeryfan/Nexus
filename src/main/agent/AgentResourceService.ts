@@ -154,10 +154,17 @@ export class AgentResourceService {
     const dtos: AgentPackageDto[] = []
     const seen = new Set<string>()
 
-    for (const pkg of pm.listConfiguredPackages()) {
+    // package.json 元数据并行读取（逐个 await 会被最慢的一个拖住）
+    const configured = pm.listConfiguredPackages()
+    const metas = await Promise.all(
+      configured.map((pkg) =>
+        pkg.installedPath ? readPackageMeta(pkg.installedPath) : Promise.resolve(null)
+      )
+    )
+    configured.forEach((pkg, index) => {
       const identity = packageIdentity(pkg.source)
       seen.add(identity)
-      const meta = pkg.installedPath ? await readPackageMeta(pkg.installedPath) : null
+      const meta = metas[index]
       const builtin = this.findBuiltin(identity)
       dtos.push({
         source: pkg.source,
@@ -173,7 +180,7 @@ export class AgentResourceService {
         builtinStatus: builtin ? (this.builtinStatus.get(builtin.id)?.status ?? 'ok') : null,
         builtinError: builtin ? (this.builtinStatus.get(builtin.id)?.error ?? null) : null
       })
-    }
+    })
 
     // 内置包尚未登记进 settings（首次安装中/失败）时合成占位，保证 UI 始终可见
     for (const def of this.builtinPackages) {

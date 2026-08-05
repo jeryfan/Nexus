@@ -12,7 +12,7 @@
 import * as z from 'zod'
 
 import { defineRoute } from '../ipc/define'
-import type { SessionListsDto } from './api/AgentDataApi'
+import { AGENT_THINKING_LEVELS, type SessionListsDto } from './api/AgentDataApi'
 import type {
   AgentMcpChangedPayload,
   AgentMessageDto,
@@ -178,7 +178,8 @@ export const agentRequestSchemas = {
     input: z.strictObject({
       sessionId,
       text: z.string().min(1),
-      images: z.array(imageInputSchema).max(8).optional()
+      images: z.array(imageInputSchema).max(8).optional(),
+      thinkingLevel: z.enum(AGENT_THINKING_LEVELS).optional()
     }),
     output: z.void()
   }),

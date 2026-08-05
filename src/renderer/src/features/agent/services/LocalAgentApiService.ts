@@ -79,7 +79,8 @@ export class LocalAgentApiService implements AgentDataApi {
       ipcApi.request('agent.session.prompt', {
         sessionId: input.sessionId,
         text: input.text,
-        ...(input.images?.length ? { images: input.images } : {})
+        ...(input.images?.length ? { images: input.images } : {}),
+        ...(input.thinkingLevel ? { thinkingLevel: input.thinkingLevel } : {})
       })
     )
   }

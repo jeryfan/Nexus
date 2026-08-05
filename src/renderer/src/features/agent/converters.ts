@@ -11,11 +11,16 @@ import type { ToolJoinEntry } from './eventReducer'
 type MessageStatus = NonNullable<ThreadMessageLike['status']>
 type ThreadMessagePart = Exclude<ThreadMessageLike['content'], string>[number]
 
-function assistantStatus(message: AssistantMessageDto, isStreaming: boolean): MessageStatus {
+/**
+ * 常规状态返回 undefined：不写显式 status，交给 assistant-ui external-store
+ * 从位置 + isRunning 派生 auto status。auto 状态变化（流式起止、消息追加）
+ * 会精确失效受影响消息的转换缓存；显式 status 反而让缓存判定为"非 auto"
+ * 永不刷新，只能靠 convertMessage 身份变化全量重建——这正是流式 O(n²) 的来源。
+ */
+function assistantStatus(message: AssistantMessageDto): MessageStatus | undefined {
   if (message.stopReason === 'error') return { type: 'incomplete', reason: 'error' }
   if (message.stopReason === 'aborted') return { type: 'incomplete', reason: 'cancelled' }
-  if (isStreaming) return { type: 'running' }
-  return { type: 'complete', reason: 'stop' }
+  return undefined
 }
 
 function toolPartStatus(join: ToolJoinEntry | undefined): MessageStatus {
@@ -66,6 +71,12 @@ function convertContentPart(
   }
 }
 
+/** convertMessage 闭包外读取的工具上下文（经 ref 传入，保持回调身份稳定）。 */
+export interface ToolContext {
+  toolResults: ReadonlyMap<string, ToolResultMessageDto>
+  toolJoin: Record<string, ToolJoinEntry>
+}
+
 /**
  * DTO → assistant-ui ThreadMessageLike. pi 原始消息保持在 store（无损往返），
  * 这里只做展示转换：toolResult 消息不单独展示，其结果并入对应
@@ -73,12 +84,7 @@ function convertContentPart(
  */
 export function convertAgentMessage(
   message: AgentMessageDto,
-  ctx: {
-    toolResults: ReadonlyMap<string, ToolResultMessageDto>
-    toolJoin: Record<string, ToolJoinEntry>
-    isStreaming: boolean
-    isLast: boolean
-  }
+  ctx: ToolContext
 ): ThreadMessageLike | null {
   if (message.role === 'user') {
     return {
@@ -95,14 +101,15 @@ export function convertAgentMessage(
   }
 
   if (message.role === 'assistant') {
-    const running = ctx.isStreaming && ctx.isLast
+    const status = assistantStatus(message)
     return {
       id: `assistant:${message.timestamp}`,
       role: 'assistant',
       content: message.content
         .map((part) => convertContentPart(part, ctx))
         .filter((p) => p !== null),
-      status: assistantStatus(message, running),
+      // undefined → runtime 按位置/isRunning 派生 auto status（见 assistantStatus 注释）
+      ...(status ? { status } : {}),
       createdAt: new Date(message.timestamp),
       ...(message.errorMessage ? { metadata: { error: message.errorMessage } } : {})
     } as ThreadMessageLike

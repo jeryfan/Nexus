@@ -1,5 +1,6 @@
 import { unwrap } from '@shared/agent/api/result'
-import type { ProjectTreeNode } from '@shared/agent/api/AgentDataApi'
+import { toast } from '@renderer/services/toast'
+import type { AgentThinkingLevel, ProjectTreeNode } from '@shared/agent/api/AgentDataApi'
 import type {
   AgentSessionEventPayload,
   AgentSessionMetaPayload,
@@ -10,6 +11,7 @@ import type {
 } from '@shared/agent/types'
 import { create } from 'zustand'
 
+import { indexToolResults } from './converters'
 import { applyAgentEvents, EMPTY_SESSION_STATE, type SessionState } from './eventReducer'
 import { agentApi } from './services/agentApi'
 
@@ -36,6 +38,8 @@ interface AgentStore {
   models: ModelInfoDto[]
   /** 当前激活会话的模型 */
   activeModel: ModelRefDto | null
+  /** 当前选中模型的思考程度（reasoning effort）；模型不支持时为 undefined */
+  activeEffort: string | undefined
   initialized: boolean
 
   initialize: () => Promise<void>
@@ -60,6 +64,8 @@ interface AgentStore {
   editMessage: (timestamp: number, text: string) => Promise<void>
   abort: () => Promise<void>
   setModel: (ref: ModelRefDto) => Promise<void>
+  /** 设置思考程度；undefined 表示不指定（交 pi 默认） */
+  setEffort: (effort: string | undefined) => void
 
   applyEventBatch: (payload: AgentSessionEventPayload) => void
   applyMeta: (payload: AgentSessionMetaPayload) => void
@@ -72,6 +78,27 @@ function patchSessionState(
 ): Record<string, SessionState> {
   const current = states[sessionId] ?? EMPTY_SESSION_STATE
   return { ...states, [sessionId]: { ...current, ...patch } }
+}
+
+/** 将模型自带默认思考程度收敛到 UI 三档（low/medium/high）。 */
+const EFFORT_CLAMP: Record<string, 'low' | 'medium' | 'high'> = {
+  minimal: 'low',
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+  xhigh: 'high',
+  max: 'high'
+}
+
+/** reasoning 模型的默认思考程度：优先模型自带 defaultEffort，否则 medium；非 reasoning 返回 undefined。 */
+function defaultEffortForModel(
+  models: ModelInfoDto[],
+  ref: ModelRefDto | null | undefined
+): string | undefined {
+  if (!ref) return undefined
+  const model = models.find((m) => m.provider === ref.provider && m.modelId === ref.modelId)
+  if (!model?.reasoning) return undefined
+  return (model.defaultEffort && EFFORT_CLAMP[model.defaultEffort]) || 'medium'
 }
 
 /** 在项目树与对话列表中定位会话 */
@@ -118,6 +145,7 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
   sessionStates: {},
   models: [],
   activeModel: null,
+  activeEffort: undefined,
   initialized: false,
 
   initialize: async () => {
@@ -135,7 +163,13 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
       .listAvailableModels()
       .then(unwrap)
       .catch(() => [] as ModelInfoDto[])
-    set({ models })
+    set({
+      models,
+      activeEffort: defaultEffortForModel(
+        models,
+        models[0] ? { provider: models[0].provider, modelId: models[0].modelId } : null
+      )
+    })
 
     const lists = unwrap(await agentApi.getSessionLists())
     set({ projects: lists.projects, chats: lists.chats })
@@ -219,7 +253,8 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
         [sessionId]: {
           messages: snapshot.messages,
           isStreaming: snapshot.isStreaming,
-          toolJoin: state.sessionStates[sessionId]?.toolJoin ?? {}
+          toolJoin: state.sessionStates[sessionId]?.toolJoin ?? {},
+          toolResults: indexToolResults(snapshot.messages)
         }
       }
     }))
@@ -259,6 +294,13 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
   },
 
   sendPrompt: async (text, images) => {
+    if (get().models.length === 0) {
+      toast.error({
+        title: '暂无可用模型',
+        description: '请先在设置中配置并启用提供商与模型'
+      })
+      return
+    }
     if (!get().activeSessionId) {
       get().createSession()
     }
@@ -273,7 +315,28 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
         isStreaming: true
       })
     }))
-    await agentApi.prompt({ sessionId, text, ...(images?.length ? { images } : {}) }).then(unwrap)
+    try {
+      const effort = get().activeEffort
+      await agentApi
+        .prompt({
+          sessionId,
+          text,
+          ...(images?.length ? { images } : {}),
+          ...(effort ? { thinkingLevel: effort as AgentThinkingLevel } : {})
+        })
+        .then(unwrap)
+    } catch (error) {
+      // IPC rejected = run never started; release the optimistic streaming flag.
+      set((state) => ({
+        sessionStates: patchSessionState(state.sessionStates, sessionId, {
+          isStreaming: false
+        })
+      }))
+      toast.error({
+        title: '发送失败',
+        description: error instanceof Error ? error.message : String(error)
+      })
+    }
   },
 
   editMessage: async (timestamp, text) => {
@@ -291,15 +354,23 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
 
   setModel: async (ref) => {
     const { activeSessionId, draft } = get()
-    set({ activeModel: ref })
+    set({ activeModel: ref, activeEffort: defaultEffortForModel(get().models, ref) })
     if (activeSessionId && activeSessionId !== draft?.id) {
       await agentApi.setModel(activeSessionId, ref).then(unwrap)
     }
   },
 
+  setEffort: (effort) => {
+    set({ activeEffort: effort })
+  },
+
   applyEventBatch: ({ sessionId, events }) => {
     set((state) => {
-      const current = state.sessionStates[sessionId] ?? EMPTY_SESSION_STATE
+      // 本窗口未打开的会话（其他窗口流式/后台会话）事件无消费者，直接丢弃：
+      // 侧栏流式指示由 agent.session.meta 驱动（agent_start/settled 时主进程广播），
+      // 打开会话时 openSession 快照携带完整状态，增量 delta 自带全量 partial 可自愈
+      const current = state.sessionStates[sessionId]
+      if (!current) return state
       const next = applyAgentEvents(current, events)
       return { sessionStates: { ...state.sessionStates, [sessionId]: next } }
     })

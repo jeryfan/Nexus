@@ -24,6 +24,7 @@ import type {
   BrowserGrabScreenshot
 } from '../../shared/browser/browser-grab-types'
 import { buildGuestOverlayScript } from './grab-guest-script'
+import { acquireGuestFrameLease } from './guest-frame-lease'
 import { clampGrabPayload } from './browser-grab-payload'
 import { captureSelectionScreenshot as captureGrabSelectionScreenshot } from './browser-grab-screenshot'
 import { BrowserGrabSessionController } from './browser-grab-session-controller'
@@ -584,12 +585,19 @@ export class BrowserManager {
   }
 
   async acquireAutomationVisibility(guestWebContentsId: number): Promise<() => void> {
+    // Glue for Nexus: automation waits for a hidden pane to paint, which needs
+    // compositor frames; the frame lease lifts background throttling until
+    // restore (guest-frame-lease.ts).
+    const guest = webContents.fromId(guestWebContentsId)
+    const releaseFrameLease = guest ? acquireGuestFrameLease(guest) : () => {}
     const browserPageId = this.resolveBrowserTabIdForGuestWebContentsId(guestWebContentsId)
     if (!browserPageId) {
+      releaseFrameLease()
       return () => {}
     }
     const renderer = this.resolveRendererForBrowserTab(browserPageId)
     if (!renderer || renderer.isDestroyed()) {
+      releaseFrameLease()
       return () => {}
     }
 
@@ -610,11 +618,20 @@ export class BrowserManager {
     )
 
     if (!isAutomationVisibilityToken(token)) {
-      return createNoopRestoreForTimedOutAutomationAcquire(renderer, acquirePromise, timedOut)
+      const noopRestore = createNoopRestoreForTimedOutAutomationAcquire(
+        renderer,
+        acquirePromise,
+        timedOut
+      )
+      return () => {
+        noopRestore()
+        releaseFrameLease()
+      }
     }
 
     return () => {
       releaseAutomationVisibilityToken(renderer, token)
+      releaseFrameLease()
     }
   }
 
@@ -640,8 +657,11 @@ export class BrowserManager {
 
     // Why: bot detectors probe APIs that differ in Electron webviews; inject overrides each load so manual browsing passes.
     const disposeAntiDetection = this.injectAntiDetection(guest)
-    // Why: disable throttling so background screenshots still get frames; else the compositor stalls and capture returns empty.
-    guest.setBackgroundThrottling(false)
+    // Glue for Nexus: upstream disabled background throttling for every guest so
+    // hidden tabs still produced frames for screenshots — at the cost of every
+    // background page running timers/rAF at full speed. Nexus keeps the default
+    // (throttling on); guest-frame-lease holders (CDP automation, screencast,
+    // automation visibility) unthrottle exactly the guests that need frames.
     const installClickedLinkRouting = (): void => {
       if (!clickedLinkRoutingActive || !clickedLinkFrameName || guest.isDestroyed()) {
         return

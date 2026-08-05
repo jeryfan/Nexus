@@ -1,5 +1,10 @@
 import type { WebContents } from 'electron'
 
+// Glue for Nexus: a debugger lease means CDP automation or screencast is
+// driving the guest, which stalls without compositor frames — hold a frame
+// lease for the debugger lease's lifetime (see guest-frame-lease.ts).
+import { acquireGuestFrameLease } from './guest-frame-lease'
+
 type DebuggerLeaseState = {
   attachedByLease: boolean
   owners: Set<symbol>
@@ -30,6 +35,7 @@ export function acquireElectronDebugger(webContents: WebContents): ElectronDebug
 
   const owner = Symbol('electron-debugger-lease')
   state.owners.add(owner)
+  const releaseFrameLease = acquireGuestFrameLease(webContents)
   let released = false
 
   return {
@@ -38,6 +44,7 @@ export function acquireElectronDebugger(webContents: WebContents): ElectronDebug
         return
       }
       released = true
+      releaseFrameLease()
       state.owners.delete(owner)
       if (state.owners.size > 0) {
         return

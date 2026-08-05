@@ -54,7 +54,7 @@ import {
   addAdditionalValidWorkspaceKeys,
   type WorkspaceSessionHydrationOptions
 } from '../features/browser/lib/workspace-session-hydration-keys'
-import { destroyWorkspaceWebviews } from './browser-webview-cleanup'
+import { destroyWorkspaceWebviews, evictBrowserGuestsOverBudget } from './browser-webview-cleanup'
 import { panelBridge } from '../features/browser/panel-bridge'
 import { useProjectPanelStore } from '@renderer/stores/projectPanel'
 import { useNavigationStore } from '@renderer/stores/navigation'
@@ -589,7 +589,19 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
   activeAppProfileId: null,
   browserImportHintHidden: false,
   persistedUIReady: true,
-  setActiveWorktreeId: (worktreeId) => set({ activeWorktreeId: worktreeId }),
+  setActiveWorktreeId: (worktreeId) => {
+    set({ activeWorktreeId: worktreeId })
+    // Glue for Nexus: 切换工作区后按保留预算驱逐隐藏 worktree 的 guest
+    //（超预算且无自动化租约/下载中才可驱逐；再访从持久化标签状态重建）
+    if (worktreeId) {
+      const state = get()
+      evictBrowserGuestsOverBudget({
+        activeWorktreeId: worktreeId,
+        browserTabsByWorktree: state.browserTabsByWorktree,
+        browserPagesByWorkspace: state.browserPagesByWorkspace
+      })
+    }
+  },
   setBrowserDefaultZoomLevel: (level) => set({ browserDefaultZoomLevel: level }),
   setBrowserImportHintHidden: (hidden) => set({ browserImportHintHidden: hidden }),
   recordFeatureInteraction: () => {

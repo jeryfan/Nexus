@@ -478,7 +478,9 @@ describe('browserManager', () => {
     // the popup must get guest policies (nav guards, recursive popup handling)
     // attached directly here.
     expect(popupContents.setWindowOpenHandler).toHaveBeenCalledTimes(1)
-    expect(popupContents.setBackgroundThrottling).toHaveBeenCalledWith(false)
+    // Glue for Nexus: guest policies no longer touch background throttling —
+    // guest-frame-lease holders (CDP automation / screencast) manage it.
+    expect(popupContents.setBackgroundThrottling).not.toHaveBeenCalled()
     expect(popupContents.on.mock.calls.some(([event]) => event === 'dom-ready')).toBe(false)
     // The renderer notice carries only the sanitized origin, never the URL.
     expect(rendererSendMock).toHaveBeenCalledWith('browser:popup', {
@@ -1279,7 +1281,8 @@ describe('browserManager', () => {
     browserManager.attachGuestPolicies(guest as never)
     browserManager.attachGuestPolicies(guest as never)
 
-    expect(guestSetBackgroundThrottlingMock).toHaveBeenCalledTimes(1)
+    // Glue for Nexus: 同上——节流由 guest-frame-lease 管理，策略装配不再调用
+    expect(guestSetBackgroundThrottlingMock).toHaveBeenCalledTimes(0)
     expect(guestSetWindowOpenHandlerMock).toHaveBeenCalledTimes(1)
     expect(guestOnMock.mock.calls.filter(([event]) => event === 'will-navigate')).toHaveLength(1)
     expect(guestOnMock.mock.calls.filter(([event]) => event === 'will-redirect')).toHaveLength(1)
@@ -1339,7 +1342,8 @@ describe('browserManager', () => {
 
     didCreateWindowHandler?.({ webContents: childGuest })
 
-    expect(childSetBackgroundThrottlingMock).toHaveBeenCalledWith(false)
+    // Glue for Nexus: 同上——节流由 guest-frame-lease 管理，策略装配不再调用
+    expect(childSetBackgroundThrottlingMock).not.toHaveBeenCalled()
     expect(childSetWindowOpenHandlerMock).toHaveBeenCalledTimes(1)
     expect(childOnMock.mock.calls.filter(([event]) => event === 'did-create-window')).toHaveLength(
       1

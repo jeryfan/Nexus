@@ -67,7 +67,6 @@ const CHATS_PREVIEW_COUNT = 5
 export const AgentSidebar: FC = () => {
   const projects = useAgentStore((s) => s.projects)
   const chats = useAgentStore((s) => s.chats)
-  const sessionStates = useAgentStore((s) => s.sessionStates)
   const createSession = useAgentStore((s) => s.createSession)
   // 折叠状态（组件内存，默认展开）
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -121,7 +120,6 @@ export const AgentSidebar: FC = () => {
           <ProjectSection
             key={project.id}
             project={project}
-            streaming={project.sessions.some((s) => sessionStates[s.sessionId]?.isStreaming)}
             expanded={expanded[project.id] ?? true}
             onToggle={() => toggle(project.id)}
           />
@@ -137,10 +135,14 @@ export const AgentSidebar: FC = () => {
 
 const ProjectSection: FC<{
   project: ProjectTreeNode
-  streaming: boolean
   expanded: boolean
   onToggle: () => void
-}> = ({ project, streaming, expanded, onToggle }) => {
+}> = ({ project, expanded, onToggle }) => {
+  // 布尔选择器：仅在本项目出现/消失流式会话时触发重渲染，
+  // 避免订阅整个 sessionStates 导致流式期间全体项目行 20Hz 重渲染
+  const streaming = useAgentStore((s) =>
+    project.sessions.some((session) => s.sessionStates[session.sessionId]?.isStreaming)
+  )
   const createSession = useAgentStore((s) => s.createSession)
   const setProjectPinned = useAgentStore((s) => s.setProjectPinned)
   const setProjectRemoved = useAgentStore((s) => s.setProjectRemoved)
@@ -276,13 +278,14 @@ const MarqueeTitle: FC<{ text: string; className?: string }> = ({ text, classNam
 
 const SessionRow: FC<{ session: SessionSummaryDto }> = ({ session }) => {
   const activeSessionId = useAgentStore((s) => s.activeSessionId)
-  const sessionStates = useAgentStore((s) => s.sessionStates)
+  // 布尔选择器：只在本行流式状态翻转时重渲染（不订阅整个 sessionStates）
+  const streaming =
+    useAgentStore((s) => s.sessionStates[session.sessionId]?.isStreaming ?? false)
   const openSession = useAgentStore((s) => s.openSession)
   const setPinned = useAgentStore((s) => s.setPinned)
   const setArchived = useAgentStore((s) => s.setArchived)
 
   const active = activeSessionId === session.sessionId
-  const streaming = sessionStates[session.sessionId]?.isStreaming ?? false
 
   return (
     <div

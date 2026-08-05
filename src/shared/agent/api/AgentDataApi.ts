@@ -54,7 +54,21 @@ export interface PromptInput {
   sessionId: string
   text: string
   images?: ImageInputDto[]
+  /** 思考程度（pi ThinkingLevel 子集）；缺省 = 不改动会话当前级别。 */
+  thinkingLevel?: AgentThinkingLevel
 }
+
+/** 与 pi `ThinkingLevel` 对齐的可选思考程度。 */
+export const AGENT_THINKING_LEVELS = [
+  'off',
+  'minimal',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max'
+] as const
+export type AgentThinkingLevel = (typeof AGENT_THINKING_LEVELS)[number]
 
 export interface EditMessageInput {
   sessionId: string

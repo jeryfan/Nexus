@@ -4,11 +4,23 @@ import {
   type AppendMessage,
   type AssistantRuntime
 } from '@assistant-ui/react'
-import type { AgentMessageDto, ImageInputDto } from '@shared/agent/types'
-import { useCallback, useMemo } from 'react'
+import type {
+  AgentMessageDto,
+  ImageInputDto,
+  ToolResultMessageDto,
+  UserMessageDto
+} from '@shared/agent/types'
+import { useCallback, useMemo, useRef } from 'react'
 
 import { useAgentStore } from './agentStore'
-import { convertAgentMessage, indexToolResults } from './converters'
+import { convertAgentMessage, type ToolContext } from './converters'
+import type { ToolJoinEntry } from './eventReducer'
+
+const EMPTY_TOOL_RESULTS: ReadonlyMap<string, ToolResultMessageDto> = new Map()
+const EMPTY_TOOL_JOIN: Record<string, ToolJoinEntry> = {}
+
+// 模块单例：此前每次 render new 一个（流式期间 20 次/秒的分配 churn）
+const attachmentAdapter = new SimpleImageAttachmentAdapter()
 
 function parseImageDataUrl(url: string): ImageInputDto | null {
   const match = /^data:(image\/[\w+.-]+);base64,(.+)$/.exec(url)
@@ -26,6 +38,14 @@ function extractPrompt(message: AppendMessage): { text: string; images: ImageInp
     .map((part) => parseImageDataUrl(part.image))
     .filter((img) => img !== null)
   return { text, images }
+}
+
+function extractUserMessageText(message: UserMessageDto): string {
+  if (typeof message.content === 'string') return message.content
+  return message.content
+    .filter((part) => part.type === 'text')
+    .map((part) => part.text)
+    .join('\n')
 }
 
 /**
@@ -51,7 +71,8 @@ export function usePiRuntime(): AssistantRuntime {
   const abort = useAgentStore((s) => s.abort)
 
   const allMessages = useMemo(() => sessionState?.messages ?? [], [sessionState?.messages])
-  const toolJoin = useMemo(() => sessionState?.toolJoin ?? {}, [sessionState?.toolJoin])
+  const toolJoin = sessionState?.toolJoin ?? EMPTY_TOOL_JOIN
+  const toolResults = sessionState?.toolResults ?? EMPTY_TOOL_RESULTS
   const isRunning = sessionState?.isStreaming ?? false
 
   // toolResult 消息并入 tool-call part 展示，不作为独立消息喂给 runtime
@@ -59,17 +80,39 @@ export function usePiRuntime(): AssistantRuntime {
     () => allMessages.filter((m) => m.role !== 'toolResult'),
     [allMessages]
   )
-  const toolResults = useMemo(() => indexToolResults(allMessages), [allMessages])
+
+  // 工具上下文经 ref 读取，convertMessage 身份恒定：assistant-ui 的 WeakMap
+  // 转换缓存在流式批次间存活，只有被 reducer 替换的消息对象会重转换
+  //（此前依赖含每批必变的 toolResults，身份每批失效 → 全量消息重转换，O(n²)）。
+  // 工具状态终态由 reducer 替换对应 assistant 消息身份精确失效缓存；
+  // 流式起止的状态显示交给 runtime 的 auto status 派生（见 converters.ts）。
+  const toolCtxRef = useRef<ToolContext>({ toolResults, toolJoin })
+  toolCtxRef.current = { toolResults, toolJoin }
 
   const convertMessage = useCallback(
-    (message: AgentMessageDto, index: number) =>
-      convertAgentMessage(message, {
-        toolResults,
-        toolJoin,
-        isStreaming: isRunning,
-        isLast: index === displayMessages.length - 1
-      })!,
-    [toolResults, toolJoin, isRunning, displayMessages.length]
+    (message: AgentMessageDto) => convertAgentMessage(message, toolCtxRef.current)!,
+    []
+  )
+
+  // 线程列表仅在会话集合变化时重建（此前每次 render flatMap 全量重建）
+  const threads = useMemo(
+    () => [
+      // 草稿（新会话）置顶，对话随后，项目会话按项目顺序
+      ...(draft ? [{ status: 'regular' as const, id: draft.id, title: '新会话' }] : []),
+      ...chats.map((s) => ({
+        status: 'regular' as const,
+        id: s.sessionId,
+        title: s.title
+      })),
+      ...projects.flatMap((project) =>
+        project.sessions.map((s) => ({
+          status: 'regular' as const,
+          id: s.sessionId,
+          title: s.title
+        }))
+      )
+    ],
+    [draft, chats, projects]
   )
 
   return useExternalStoreRuntime<AgentMessageDto>({
@@ -93,29 +136,27 @@ export function usePiRuntime(): AssistantRuntime {
       if (!Number.isFinite(timestamp) || !text) return
       await editMessage(timestamp, text)
     },
+    onReload: async (parentId) => {
+      // 重新生成 = 以原文重发父用户消息（edit-and-resend 同一通道，在分支点
+      // 生成新回复）。parentId 为被重载 assistant 回复的父消息 id。
+      const timestamp = parentId?.startsWith('user:') ? Number(parentId.slice(5)) : NaN
+      if (!Number.isFinite(timestamp)) return
+      const userMessage = allMessages.find(
+        (m): m is UserMessageDto => m.role === 'user' && m.timestamp === timestamp
+      )
+      if (!userMessage) return
+      const text = extractUserMessageText(userMessage)
+      if (!text) return
+      await editMessage(timestamp, text)
+    },
     onCancel: async () => {
       await abort()
     },
     adapters: {
-      attachments: new SimpleImageAttachmentAdapter(),
+      attachments: attachmentAdapter,
       threadList: {
         threadId: activeSessionId ?? undefined,
-        threads: [
-          // 草稿（新会话）置顶，对话随后，项目会话按项目顺序
-          ...(draft ? [{ status: 'regular' as const, id: draft.id, title: '新会话' }] : []),
-          ...chats.map((s) => ({
-            status: 'regular' as const,
-            id: s.sessionId,
-            title: s.title
-          })),
-          ...projects.flatMap((project) =>
-            project.sessions.map((s) => ({
-              status: 'regular' as const,
-              id: s.sessionId,
-              title: s.title
-            }))
-          )
-        ],
+        threads,
         onSwitchToNewThread: () => createSession(),
         onSwitchToThread: (threadId) =>
           threadId === draft?.id ? activateDraft() : openSession(threadId),

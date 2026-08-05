@@ -503,7 +503,9 @@ export class RuntimeBrowserCommands {
         deviceScaleFactor: clampOptionalNumber(params.deviceScaleFactor, 1, 4),
         mobile: params.mobile === true,
         everyNthFrame: clampInteger(params.everyNthFrame, 1, 10, 2),
-        minFrameIntervalMs: clampInteger(params.minFrameIntervalMs, 0, 1000, 0),
+        // 默认帧间隔下限 ~10fps：动画页无上限推帧只会浪费编码/IPC；
+        // 需要高帧率的订阅方仍可显式传 0
+        minFrameIntervalMs: clampInteger(params.minFrameIntervalMs, 0, 1000, 100),
         onFrame: stream.sendBinary,
         onEvent: stream.emit,
         onError: (message) => stream.emit?.({ type: 'error', message })

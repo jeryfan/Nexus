@@ -21,6 +21,7 @@ import {
 } from '@renderer/components/assistant-ui/tool-group'
 import { TooltipIconButton } from '@renderer/components/assistant-ui/tooltip-icon-button'
 import { useProjectPanelStore } from '@renderer/stores/projectPanel'
+import { useNavigationStore } from '@renderer/stores/navigation'
 import {
   Reasoning,
   ReasoningContent,
@@ -137,7 +138,6 @@ export const AgentThread: FC = () => {
       }}
     >
       <ThreadPrimitive.Viewport
-        turnAnchor="top"
         className={cn(
           'relative flex flex-1 flex-col overflow-x-hidden overflow-y-scroll scroll-smooth px-4 pt-4',
           isEmpty && 'justify-center'
@@ -350,6 +350,8 @@ const ModelPicker: FC = () => {
   const models = useAgentStore((s) => s.models)
   const activeModel = useAgentStore((s) => s.activeModel)
   const setModel = useAgentStore((s) => s.setModel)
+  const activeEffort = useAgentStore((s) => s.activeEffort)
+  const setEffort = useAgentStore((s) => s.setEffort)
 
   const options: ModelOption[] = useMemo(
     () =>
@@ -374,6 +376,8 @@ const ModelPicker: FC = () => {
         const modelId = rest.join('/')
         if (provider && modelId) void setModel({ provider, modelId })
       }}
+      {...(activeEffort ? { effort: activeEffort } : {})}
+      onEffortChange={(effort) => setEffort(effort)}
       variant="ghost"
       size="sm"
       searchable
@@ -384,6 +388,9 @@ const ModelPicker: FC = () => {
 }
 
 const ComposerAction: FC = () => {
+  const hasModels = useAgentStore((s) => s.models.length > 0)
+  const navigate = useNavigationStore((s) => s.navigate)
+
   return (
     <div className="relative flex items-center justify-between">
       <div className="flex items-center gap-1">
@@ -391,6 +398,18 @@ const ComposerAction: FC = () => {
       </div>
       <div className="flex items-center gap-1.5">
         <ModelPicker />
+        {!hasModels && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground h-7 gap-1 rounded-full px-2.5 text-xs"
+            onClick={() => navigate('settings')}
+            aria-label="配置模型"
+          >
+            配置模型
+          </Button>
+        )}
         <AuiIf condition={(s) => !s.thread.isRunning}>
           <ComposerPrimitive.Send asChild>
             <Button
@@ -398,6 +417,7 @@ const ComposerAction: FC = () => {
               variant="default"
               size="icon"
               className="size-7 rounded-full"
+              disabled={!hasModels}
               aria-label="发送"
             >
               <ArrowUpIcon className="size-4.5 lucide-custom" />

@@ -5,7 +5,7 @@ import { agentSessionTable, type AgentSessionRow } from '@main/data/db/schemas/a
 import type { DbType } from '@main/data/db/types'
 import type { SessionListsDto } from '@shared/agent/api/AgentDataApi'
 import type { SessionSummaryDto } from '@shared/agent/types'
-import { eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 import { readFile, unlink } from 'node:fs/promises'
 
 const logger = loggerService.withContext('AgentSessionStore')
@@ -56,16 +56,21 @@ export class AgentSessionStore {
   // ── Queries ──
 
   async getSessionLists(): Promise<SessionListsDto> {
-    const [projects, projectSessions, chats] = await Promise.all([
+    // 会话单查询全量取出后内存分流（项目会话/对话），避免同一表查两遍
+    const [projects, sessions] = await Promise.all([
       this.db.select().from(agentProjectTable),
-      this.db.select().from(agentSessionTable).where(isNotNull(agentSessionTable.projectId)),
-      this.db.select().from(agentSessionTable).where(isNull(agentSessionTable.projectId))
+      this.db.select().from(agentSessionTable)
     ])
     const byProject = new Map<string, AgentSessionRow[]>()
-    for (const row of projectSessions) {
-      const list = byProject.get(row.projectId!) ?? []
+    const chats: AgentSessionRow[] = []
+    for (const row of sessions) {
+      if (row.projectId === null) {
+        chats.push(row)
+        continue
+      }
+      const list = byProject.get(row.projectId) ?? []
       list.push(row)
-      byProject.set(row.projectId!, list)
+      byProject.set(row.projectId, list)
     }
 
     const tree = projects
@@ -276,13 +281,25 @@ export class AgentSessionStore {
     logger.info('legacy flags migrated and removed', { path: legacyFlagsPath })
   }
 
+  private emitTimer: ReturnType<typeof setTimeout> | undefined
+
+  /**
+   * 变更广播合帧：一个窗口内的连续 mutation（agent 每轮 touchSession、
+   * 批量归档等）只触发一次列表重建 + IPC 广播，取窗口末次状态。
+   */
   private emitChanged(): void {
     if (!this.onChanged) return
-    void this.getSessionLists()
-      .then((lists) => this.onChanged?.(lists))
-      .catch((error) => logger.error('emitChanged failed', error))
+    if (this.emitTimer) return
+    this.emitTimer = setTimeout(() => {
+      this.emitTimer = undefined
+      void this.getSessionLists()
+        .then((lists) => this.onChanged?.(lists))
+        .catch((error) => logger.error('emitChanged failed', error))
+    }, SESSION_LISTS_EMIT_COALESCE_MS)
   }
 }
+
+const SESSION_LISTS_EMIT_COALESCE_MS = 100
 
 /** 会话排序：置顶优先，再按最近活动倒排 */
 function compareSessions(a: AgentSessionRow, b: AgentSessionRow): number {

@@ -8,6 +8,12 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Switch,
   Tooltip
 } from '@nexus/ui'
 import { loggerService } from '@logger'
@@ -16,11 +22,12 @@ import { toast } from '@renderer/services/toast'
 import { validateApiHost } from '@renderer/utils/api'
 import { cn } from '@renderer/utils/style'
 import { ENDPOINT_TYPE, type EndpointType } from '@shared/data/types/model'
-import type { EndpointConfig } from '@shared/data/types/provider'
+import type { EndpointConfig, PiCompat } from '@shared/data/types/provider'
+import { resolveEffectivePiCompat } from '@shared/data/utils/piCompatDefaults'
 import { getProviderHostTopology } from '@shared/utils/providerTopology'
 import { isEmpty, trim } from 'es-toolkit/compat'
 import { Braces, List, Plus, Trash2 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
 import { ProviderImageEndpointFields } from '../components/ProviderImageEndpointFields'
@@ -135,6 +142,52 @@ export function resolveEndpointTypes(
 
 export interface EndpointDraft {
   baseUrl: string
+  piCompat?: PiCompat
+}
+
+/** Concrete per-endpoint compat draft: every field holds a real value (no "default"). */
+interface CompatDraft {
+  thinkingFormat: NonNullable<PiCompat['thinkingFormat']>
+  supportsDeveloperRole: boolean
+  supportsStore: boolean
+  supportsReasoningEffort: boolean
+  supportsUsageInStreaming: boolean
+  requiresThinkingAsText: boolean
+  maxTokensField: NonNullable<PiCompat['maxTokensField']>
+}
+
+const THINKING_FORMAT_OPTIONS: Array<NonNullable<PiCompat['thinkingFormat']>> = [
+  'openai',
+  'openrouter',
+  'deepseek',
+  'together',
+  'zai',
+  'qwen',
+  'chat-template',
+  'qwen-chat-template',
+  'string-thinking',
+  'ant-ling'
+]
+
+const MAX_TOKENS_OPTIONS: Array<NonNullable<PiCompat['maxTokensField']>> = [
+  'max_completion_tokens',
+  'max_tokens'
+]
+
+function compatToDraft(
+  stored: PiCompat | undefined,
+  providerId: string,
+  presetProviderId: string | undefined,
+  baseUrl: string
+): CompatDraft {
+  return {
+    ...resolveEffectivePiCompat(stored, providerId, presetProviderId, baseUrl)
+  } as CompatDraft
+}
+
+/** Drafts are always fully concrete, so saving writes the exact compat object. */
+function draftToCompat(draft: CompatDraft): PiCompat {
+  return { ...draft }
 }
 
 /**
@@ -155,6 +208,11 @@ export function mergeEndpointConfigs(
       next.baseUrl = value
     } else {
       delete next.baseUrl
+    }
+    if (draft.piCompat) {
+      next.piCompat = draft.piCompat
+    } else {
+      delete next.piCompat
     }
     if (!isEmpty(next)) {
       out[type] = next
@@ -184,6 +242,91 @@ export function findInvalidSecondaryEndpointUrl(
   return null
 }
 
+interface CompatRowProps {
+  label: string
+  children: ReactNode
+}
+
+function CompatRow({ label, children }: CompatRowProps) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-muted-foreground/70 text-xs">{label}</span>
+      <div className="shrink-0">{children}</div>
+    </div>
+  )
+}
+
+interface EndpointCompatControlsProps {
+  value: CompatDraft
+  onChange: (next: CompatDraft) => void
+}
+
+function EndpointCompatControls({ value, onChange }: EndpointCompatControlsProps) {
+  const set = (patch: Partial<CompatDraft>) => onChange({ ...value, ...patch })
+  type BoolField =
+    | 'supportsDeveloperRole'
+    | 'supportsStore'
+    | 'supportsReasoningEffort'
+    | 'supportsUsageInStreaming'
+    | 'requiresThinkingAsText'
+  const boolRow = (field: BoolField, label: string) => (
+    <CompatRow label={label}>
+      <Switch
+        size="sm"
+        checked={value[field]}
+        onCheckedChange={(checked) => set({ [field]: checked } as Partial<CompatDraft>)}
+      />
+    </CompatRow>
+  )
+
+  return (
+    <div className="bg-muted/20 space-y-2.5 rounded-md border border-border/50 p-3">
+      <CompatRow label={'思考格式'}>
+        <Select
+          value={value.thinkingFormat}
+          onValueChange={(next) => set({ thinkingFormat: next as CompatDraft['thinkingFormat'] })}
+        >
+          <SelectTrigger size="sm" className="h-7 w-40 text-xs" aria-label={'思考格式'}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {THINKING_FORMAT_OPTIONS.map((format) => (
+              <SelectItem key={format} value={format}>
+                {format}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CompatRow>
+      <CompatRow label={'max tokens 字段'}>
+        <Select
+          value={value.maxTokensField}
+          onValueChange={(next) => set({ maxTokensField: next as CompatDraft['maxTokensField'] })}
+        >
+          <SelectTrigger size="sm" className="h-7 w-40 text-xs" aria-label={'max tokens 字段'}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {MAX_TOKENS_OPTIONS.map((field) => (
+              <SelectItem key={field} value={field}>
+                {field}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </CompatRow>
+      {boolRow('supportsDeveloperRole', 'developer 角色')}
+      {boolRow('supportsStore', 'store 字段')}
+      {boolRow('supportsReasoningEffort', 'reasoning_effort')}
+      {boolRow('supportsUsageInStreaming', '流式用量')}
+      {boolRow('requiresThinkingAsText', '思考转文本')}
+      <p className="text-muted-foreground/40 text-xs leading-relaxed">
+        {'以上为随请求发送的具体兼容值，已按供应商预填，可逐项调整。'}
+      </p>
+    </div>
+  )
+}
+
 export default function ProviderCustomHeaderDrawer({
   providerId,
   open,
@@ -206,6 +349,8 @@ export default function ProviderCustomHeaderDrawer({
 
   const [rows, setRows] = useState<HeaderRow[]>([])
   const [endpointDrafts, setEndpointDrafts] = useState<Record<string, EndpointDraft>>({})
+  const [compatDrafts, setCompatDrafts] = useState<Record<string, CompatDraft>>({})
+  const [compatOpen, setCompatOpen] = useState<Record<string, boolean>>({})
   const [imageEndpointDraft, setImageEndpointDraft] = useState<ProviderImageEndpointDraft>(() =>
     readProviderImageEndpointDraft(undefined)
   )
@@ -226,12 +371,21 @@ export default function ProviderCustomHeaderDrawer({
     }
 
     const drafts: Record<string, EndpointDraft> = {}
+    const compat: Record<string, CompatDraft> = {}
     for (const type of endpointTypes) {
       drafts[type] = {
         baseUrl: trim(provider?.endpointConfigs?.[type]?.baseUrl ?? '')
       }
+      compat[type] = compatToDraft(
+        provider?.endpointConfigs?.[type]?.piCompat,
+        providerId,
+        provider?.presetProviderId,
+        trim(provider?.endpointConfigs?.[type]?.baseUrl ?? '')
+      )
     }
     setEndpointDrafts(drafts)
+    setCompatDrafts(compat)
+    setCompatOpen({})
     setImageEndpointDraft(readProviderImageEndpointDraft(provider?.endpointConfigs))
     setInvalidImageEndpointField(null)
     setVisibleEndpointTypes(endpointTypes)
@@ -239,7 +393,7 @@ export default function ProviderCustomHeaderDrawer({
     setRows(headersObjectToRows(sourceHeaders))
     setJsonDraft(JSON.stringify(sourceHeaders, null, 2))
     setHeadersUiMode('list')
-  }, [open, sourceHeaders, endpointTypes, provider?.endpointConfigs])
+  }, [open, sourceHeaders, endpointTypes, provider?.endpointConfigs, provider?.presetProviderId, providerId])
 
   const syncListToJson = useCallback(() => {
     setJsonDraft(JSON.stringify(rowsToHeadersObject(rows), null, 2))
@@ -291,7 +445,15 @@ export default function ProviderCustomHeaderDrawer({
       return
     }
 
-    const textEndpointConfigs = mergeEndpointConfigs(provider.endpointConfigs, endpointDrafts)
+    // Attach per-endpoint concrete pi-compat overrides.
+    const draftsWithCompat: Record<string, EndpointDraft> = { ...endpointDrafts }
+    for (const type of visibleEndpointTypes) {
+      const draft = compatDrafts[type]
+      if (!draft) continue
+      draftsWithCompat[type] = { ...draftsWithCompat[type], piCompat: draftToCompat(draft) }
+    }
+
+    const textEndpointConfigs = mergeEndpointConfigs(provider.endpointConfigs, draftsWithCompat)
     const nextEndpointConfigs = mergeProviderImageEndpointDraft(
       textEndpointConfigs,
       imageEndpointDraft
@@ -334,6 +496,7 @@ export default function ProviderCustomHeaderDrawer({
     toast.success('保存成功')
     onClose()
   }, [
+    compatDrafts,
     endpointDrafts,
     headersUiMode,
     imageEndpointDraft,
@@ -344,7 +507,8 @@ export default function ProviderCustomHeaderDrawer({
     providerId,
     rows,
     syncProviderModels,
-    updateProvider
+    updateProvider,
+    visibleEndpointTypes
   ])
 
   const footer = (
@@ -379,11 +543,26 @@ export default function ProviderCustomHeaderDrawer({
           const endpointLabel = ENDPOINT_TYPE_LABELS[type]
           const label = isPrimary ? 'API 地址' : (endpointLabel ?? type)
           const inputId = `provider-request-config-endpoint-${type}`
+          const compatDraft = compatDrafts[type]
           return (
             <div key={type} className="space-y-1.5">
-              <Label className="text-muted-foreground/60 text-xs" htmlFor={inputId}>
-                {label}
-              </Label>
+              <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
+                <Label className="text-muted-foreground/60 text-xs" htmlFor={inputId}>
+                  {label}
+                </Label>
+                <button
+                  type="button"
+                  className={fieldClasses.titleHelpLink}
+                  onClick={() =>
+                    setCompatOpen((prev) => ({ ...prev, [type]: !prev[type] }))
+                  }
+                >
+                  <span>{'兼容参数'}</span>
+                  {provider?.endpointConfigs?.[type]?.piCompat && (
+                    <span className="bg-primary ml-1 inline-block size-1.5 rounded-full" aria-hidden />
+                  )}
+                </button>
+              </div>
               <InputGroup className={fieldClasses.inputGroup}>
                 <InputGroupInput
                   id={inputId}
@@ -403,6 +582,12 @@ export default function ProviderCustomHeaderDrawer({
                 <p className="wrap-break-word text-muted-foreground/40 text-xs leading-relaxed">
                   {'自定义 API 请求地址；留空则使用目录默认地址。'}
                 </p>
+              )}
+              {compatOpen[type] && compatDraft && (
+                <EndpointCompatControls
+                  value={compatDraft}
+                  onChange={(next) => setCompatDrafts((prev) => ({ ...prev, [type]: next }))}
+                />
               )}
             </div>
           )

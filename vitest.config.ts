@@ -3,11 +3,16 @@ import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
   // Why: renderer 测试（features/browser 等）经 @renderer / @shared 别名引用源码，
-  // 与 electron.vite.config.ts / tsconfig 的别名保持一致。
+  // 与 electron.vite.config.ts / tsconfig 的别名保持一致。@nexus/* 同样直指
+  // workspace 包源码（桌面端不消费 dist，见 AGENTS.md 源码消费约定）。
   resolve: {
     alias: {
       '@renderer': resolve('src/renderer/src'),
-      '@shared': resolve('src/shared')
+      '@shared': resolve('src/shared'),
+      '@nexus/provider-registry/node': resolve('packages/provider-registry/src/registry-loader'),
+      '@nexus/provider-registry': resolve('packages/provider-registry/src'),
+      '@nexus/ui/icons': resolve('packages/ui/src/components/icons'),
+      '@nexus/ui': resolve('packages/ui/src')
     }
   },
   test: {

@@ -45,11 +45,12 @@ packages/ui                @nexus/ui —— React 组件库（主题 tokens、�
 ```
 src/main/       Electron 主进程（Node 环境，可用 Node API）
   agent/        pi-coding-agent 集成层：AgentSessionService（会话生命周期）、PiLoader（动态加载 pi 模块）、
-                AgentEventBridge + broadcast（agent 事件推送渲染层）、ModelRuntimeService、
+                AgentEventBridge + broadcast（agent 事件推送渲染层）、ModelRuntimeService（经
+                registerProvider 把 Nexus provider/模型配置同步进 pi runtime）、
                 McpConfigService、WorkspaceService、ArtifactService、TitleSummarizer、
                 AgentResourceService（读取 resources/agent）
-  ai/           AiService + provider factory：非 agent 场景的模型调用（设置页连通性检查、标题总结等），
-                含 dashscope / newapi 等 custom provider
+  ai/           AiService + provider factory：非 agent 场景的模型调用（设置页连通性检查、远端模型列表拉取等），
+                含 dashscope / newapi 等 custom provider；标题总结走 pi runtime（TitleSummarizer），不经此层
   data/         better-sqlite3 + drizzle-orm（DbService / schemas / seeding）、CacheService、DataApiService
   ipc/          IpcRouter + handlers + nativeCommandMenu；browser.ts 独立注册 `browser:*` 通道（不走 IpcRouter）
   browser/      内置浏览器域（上游代码归属见仓库根 NOTICE）：BrowserManager（WebContents 注册表 +
@@ -95,6 +96,7 @@ build/          electron-builder 配置资源
 
 1. **pi-coding-agent 集成**
    - 仅主进程 import pi；渲染层经 `PiRuntimeAdapter` + IPC 与 agent 交互，不直接依赖 pi。
+   - **模型配置桥接**：设置页配置的 provider/模型（SQLite `user_provider`/`user_model`）是单一数据源，`ModelRuntimeService.syncNexusProviders()` 经 pi `registerProvider` 注入内存态 `ModelRuntime`（不写 pi 的 auth.json/models.json）。纯映射逻辑在 `src/main/agent/providerMapping.ts`（有 vitest）；会话 instantiate/setModel 前与模型列表拉取时会幂等重同步。pi 一次注册只认一个 key，故取首个启用 key，不做 AiService 式轮换。供应商 wire 兼容（pi `compat`，如 qwen `thinkingFormat`）优先读端点配置 `piCompat`（`EndpointConfigSchema`，数据驱动、新增供应商免打包），无配置时回落 `providerMapping.ts` 的策展族表 / pi 自动检测；设置页「请求配置」抽屉可按端点编辑 `piCompat`，以共享模块 `piCompatDefaults`（保守基线 + 供应商默认）预填**具体值**，无「默认」哨兵。
    - 通过 pnpm patch 定制（`patches/@earendil-works__pi-coding-agent@0.83.0.patch`）：`piConfig.name = "nexus"`、`configDir = ".nexus"`（用户级配置目录 `~/.nexus`）。升级 pi 版本必须同步重建 patch 并更新 `pnpm-workspace.yaml` 的 `patchedDependencies`。
    - 内置 pi 包钉版在 `resources/agent/builtin-packages.json`；预装树由 `pnpm agent:builtins` 生成（打包时 beforePack 自动），运行时装机离线拷贝到 `~/.nexus/agent/npm/`，不依赖用户机器的 npm/git/网络。升级节奏由 Nexus 发版控制。
 2. **主进程与渲染进程通信**：渲染进程需要系统能力时，一律在 preload 中通过 `contextBridge` 暴露最小 API，不开 `nodeIntegration`，保持 `contextIsolation` 默认开启。IPC 通道名统一定义在 `src/shared/IpcChannel.ts`。

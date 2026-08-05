@@ -45,7 +45,7 @@ export const agentHandlers: IpcHandlersFor<typeof agentRequestSchemas> = {
     await service().sessions.archiveProjectSessions(input.cwd)
   },
   'agent.session.prompt': async (input) => {
-    await service().sessions.prompt(input.sessionId, input.text, input.images)
+    await service().sessions.prompt(input.sessionId, input.text, input.images, input.thinkingLevel)
   },
   'agent.session.edit': async (input) => {
     await service().sessions.editUserMessage(input.sessionId, input.timestamp, input.text)

@@ -1,9 +1,12 @@
 /**
  * Registry Loader — read, validate, cache, and query registry JSON data.
  *
- * Cached data auto-expires after an idle period (default 30s).
- * Any access resets the timer. When the timer fires, all data and indexes
- * are released — the next access triggers a fresh load from disk.
+ * Cached data stays resident for the process lifetime by default: the registry
+ * totals ~1MB parsed, but reloading costs a synchronous ~1MB readFileSync +
+ * full zod validation + index rebuild on the main-process event loop, which
+ * hot paths (model list, provider metadata) hit repeatedly. Pass a positive
+ * `idleTtlMs` to opt back into idle auto-expiry; `invalidate()` stays
+ * available for explicit release (e.g. after regenerating registry files).
  */
 
 import { readFileSync } from 'node:fs'
@@ -52,14 +55,12 @@ export interface RegistryPaths {
   providerModels: string
 }
 
-/** Default idle TTL in milliseconds (30 seconds). */
-const DEFAULT_IDLE_TTL_MS = 30_000
-
 /**
- * Cached registry data with pre-computed indexes and idle auto-expiry.
+ * Cached registry data with pre-computed indexes.
  *
- * Data is lazily loaded on first access, indexes are built once after load,
- * and everything is released after {@link idleTtlMs} of no access.
+ * Data is lazily loaded on first access and indexes are built once after load.
+ * By default the cache never expires on its own (see module docs); pass a
+ * positive `idleTtlMs` to release everything after that idle period.
  */
 export class RegistryLoader {
   private models: ModelConfig[] | null = null
@@ -85,11 +86,12 @@ export class RegistryLoader {
     private readonly paths: RegistryPaths,
     idleTtlMs?: number
   ) {
-    this.idleTtlMs = idleTtlMs ?? DEFAULT_IDLE_TTL_MS
+    this.idleTtlMs = idleTtlMs ?? 0
   }
 
-  /** Reset the idle timer. Called on every public access. */
+  /** Reset the idle timer (only when a positive idleTtlMs is configured). */
   private touch(): void {
+    if (this.idleTtlMs <= 0) return
     if (this.idleTimer) clearTimeout(this.idleTimer)
     this.idleTimer = setTimeout(() => this.invalidate(), this.idleTtlMs)
   }

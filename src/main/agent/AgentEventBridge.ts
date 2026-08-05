@@ -1,6 +1,7 @@
 import { IpcChannel } from '@shared/IpcChannel'
 import type {
   AgentEventDto,
+  AgentMessageDto,
   AgentSessionEventPayload,
   AgentSessionMetaPayload
 } from '@shared/agent/types'
@@ -56,9 +57,7 @@ export class AgentEventBridge {
   /** Feed one raw pi event (from the session subscription). */
   forward(sessionId: string, event: AgentSessionEvent): void {
     if (!FORWARDED_EVENT_TYPES.has(event.type)) return
-    // Structural mirror: the whitelisted pi events match AgentEventDto field
-    // for field (messages are JSON-safe), so the cast is sound by construction.
-    const dto = event as unknown as AgentEventDto
+    const dto = this.toDto(event)
 
     const key = this.coalescingKey(dto)
     if (key === undefined) {
@@ -67,6 +66,30 @@ export class AgentEventBridge {
       return
     }
     this.coalesce(sessionId, key, dto)
+  }
+
+  /**
+   * Maps a raw pi event to the wire DTO. Delta-heavy payloads are trimmed to the
+   * fields the renderer actually consumes: message_update drops pi's
+   * assistantMessageEvent (its `partial` is a second copy of the same cumulative
+   * text as `message`), agent_end drops `messages` (this turn's full messages
+   * including large tool results) in favor of the single `willRetry` flag.
+   * Structured-clone cost of streaming batches drops from O(cumulative text) to
+   * O(delta-relevant fields) per event.
+   */
+  private toDto(event: AgentSessionEvent): AgentEventDto {
+    switch (event.type) {
+      case 'agent_end':
+        return { type: 'agent_end', willRetry: event.willRetry }
+      case 'message_update':
+        return {
+          type: 'message_update',
+          message: event.message as unknown as AgentMessageDto
+        }
+      default:
+        // Remaining whitelisted events mirror pi field-for-field (JSON-safe).
+        return event as unknown as AgentEventDto
+    }
   }
 
   /** Flush and forget a session's buffer (session disposed/deleted). */

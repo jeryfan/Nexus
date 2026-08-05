@@ -170,6 +170,39 @@ export const ModelsApiUrlsSchema = z.object({
 
 export type ModelsApiUrls = z.infer<typeof ModelsApiUrlsSchema>
 
+/**
+ * pi `compat` overrides (OpenAI-completions wire quirks) that can be stored per
+ * endpoint so provider-specific behaviour is configurable at runtime instead of
+ * hardcoded. Mirrors the pi-ai `OpenAICompletionsCompat` subset Nexus emits.
+ */
+export const PiCompatSchema = z
+  .object({
+    thinkingFormat: z
+      .enum([
+        'openai',
+        'openrouter',
+        'deepseek',
+        'together',
+        'zai',
+        'qwen',
+        'chat-template',
+        'qwen-chat-template',
+        'string-thinking',
+        'ant-ling'
+      ])
+      .optional(),
+    supportsDeveloperRole: z.boolean().optional(),
+    supportsStore: z.boolean().optional(),
+    supportsReasoningEffort: z.boolean().optional(),
+    supportsUsageInStreaming: z.boolean().optional(),
+    maxTokensField: z.enum(['max_completion_tokens', 'max_tokens']).optional(),
+    requiresThinkingAsText: z.boolean().optional(),
+    requiresReasoningContentOnAssistantMessages: z.boolean().optional()
+  })
+  .strict()
+
+export type PiCompat = z.infer<typeof PiCompatSchema>
+
 /** Per-endpoint-type configuration */
 export const EndpointConfigSchema = z.object({
   /** Base URL for this endpoint type's API */
@@ -177,7 +210,14 @@ export const EndpointConfigSchema = z.object({
   /** URLs for fetching available models via this endpoint type */
   modelsApiUrls: ModelsApiUrlsSchema.optional(),
   /** AI SDK adapter family that handles this endpoint. Carried over from the catalog */
-  adapterFamily: z.string().optional()
+  adapterFamily: z.string().optional(),
+  /**
+   * pi wire-compatibility overrides for this endpoint, passed verbatim to
+   * `ModelRuntime.registerProvider` models' `compat`. Data-driven so new
+   * providers' quirks are configurable without an app release. Absent ⇒ the
+   * agent bridge falls back to its curated per-family defaults / pi auto-detect.
+   */
+  piCompat: PiCompatSchema.optional()
 })
 
 export type EndpointConfig = z.infer<typeof EndpointConfigSchema>

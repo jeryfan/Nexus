@@ -13,6 +13,7 @@ import type {
   ModelRefDto,
   SessionSnapshotDto
 } from '@shared/agent/types'
+import type { AgentThinkingLevel } from '@shared/agent/api/AgentDataApi'
 
 import { AgentEventBridge, broadcastSessionMeta } from './AgentEventBridge'
 import { loadPi } from './PiLoader'
@@ -36,6 +37,8 @@ interface SessionHandle {
 
 export interface AgentSessionServiceDeps {
   getModelRuntime: () => ModelRuntime
+  /** Re-mirrors Nexus provider/model config into the runtime before model resolution. */
+  syncModelRuntime?: () => Promise<void>
   /** 会话资源入口：共享的 loader（按 cwd）与 SettingsManager，由 AgentResourceService 提供。 */
   getResources: (
     cwd: string
@@ -165,9 +168,16 @@ export class AgentSessionService {
 
   // ── Commands ──
 
-  async prompt(sessionId: string, text: string, images?: ImageInputDto[]): Promise<void> {
+  async prompt(
+    sessionId: string,
+    text: string,
+    images?: ImageInputDto[],
+    thinkingLevel?: AgentThinkingLevel
+  ): Promise<void> {
     const handle = this.requireHandle(sessionId)
     handle.lastActiveAt = Date.now()
+    // Apply the requested thinking level before the run; absent = keep current.
+    if (thinkingLevel) handle.session.setThinkingLevel(thinkingLevel)
     // Resolve to acceptance asynchronously: prompt() resolves when the whole
     // run finishes, so report it through events instead of awaiting here.
     void handle.session
@@ -185,6 +195,10 @@ export class AgentSessionService {
       )
       .catch((error) => {
         logger.error(`prompt failed for ${sessionId}`, error)
+        // Runs that reject (e.g. no model configured) never emit settling
+        // events; release the renderer's streaming state explicitly so the
+        // composer cannot get stuck in "running".
+        broadcastSessionMeta({ sessionId, isStreaming: false })
       })
   }
 
@@ -217,11 +231,13 @@ export class AgentSessionService {
     handle.lastActiveAt = Date.now()
     void handle.session.prompt(text).catch((error) => {
       logger.error(`edit-resend prompt failed for ${sessionId}`, error)
+      broadcastSessionMeta({ sessionId, isStreaming: false })
     })
   }
 
   async setModel(sessionId: string, ref: ModelRefDto): Promise<void> {
     const handle = this.requireHandle(sessionId)
+    await this.deps.syncModelRuntime?.()
     const model = this.deps.getModelRuntime().getModel(ref.provider, ref.modelId)
     if (!model) {
       throw new Error(`Model not found: ${ref.provider}/${ref.modelId}`)
@@ -256,6 +272,9 @@ export class AgentSessionService {
 
   private async instantiate(sessionManager: SessionManager, cwd: string): Promise<AgentSession> {
     const pi = await loadPi()
+    // Fresh mirror of Nexus provider/model config so both the cached selection
+    // and pi's own persisted-model restore resolve against current settings.
+    await this.deps.syncModelRuntime?.()
     const modelRuntime = this.deps.getModelRuntime()
 
     // Only apply the cached model selection to fresh sessions — an existing
@@ -321,7 +340,9 @@ export class AgentSessionService {
   private snapshot(sessionId: string, handle: SessionHandle): SessionSnapshotDto {
     const model = handle.session.model
     const infoName = handle.sessionManager.getSessionName()
-    const firstUserText = toMessageDtos(handle.session.messages)
+    // 单次转换复用：历史消息可达数千条，此前标题提取与快照各转一遍
+    const messages = toMessageDtos(handle.session.messages)
+    const firstUserText = messages
       .filter((m) => m.role === 'user')
       .map((m) => extractUserText(m.content))
       .find((t) => t.length > 0)
@@ -330,7 +351,7 @@ export class AgentSessionService {
       cwd: handle.cwd,
       title: infoName || firstUserText?.slice(0, 30) || '新会话',
       updatedAt: Date.now(),
-      messages: toMessageDtos(handle.session.messages),
+      messages,
       isStreaming: handle.session.isStreaming,
       model: model ? { provider: model.provider, modelId: model.id } : null
     }

@@ -33,6 +33,7 @@ export class AgentService {
     this.workspace = new WorkspaceService(cache)
     this.sessions = new AgentSessionService({
       getModelRuntime: () => this.modelRuntime.get(),
+      syncModelRuntime: () => this.modelRuntime.syncNexusProviders(),
       getResources: async (cwd) => ({
         resourceLoader: await this.resources.acquireLoader(cwd),
         settingsManager: this.resources.getSettingsManager()
