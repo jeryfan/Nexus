@@ -93,7 +93,9 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
         </div>
       </ResizablePanel>
 
-      <ResizableSeparator className="w-1.5" />
+      {/* 分隔条着边栏底色、线贴左缘：还原旧 border-r 位置，避免透明条在
+          边栏(--sidebar)与页面底色(--background)之间露出色差空隙 */}
+      <ResizableSeparator className="bg-sidebar w-1.5 justify-start" />
 
       {/* 右侧内容区：折叠后在顶部显示控制按钮 */}
       <ResizablePanel id="main" groupResizeBehavior="preserve-pixel-size">
