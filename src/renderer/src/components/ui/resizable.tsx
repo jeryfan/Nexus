@@ -1,5 +1,5 @@
 import { cn } from '@renderer/lib/utils'
-import type { FC } from 'react'
+import { useLayoutEffect, useRef, type FC } from 'react'
 import { Separator, type SeparatorProps } from 'react-resizable-panels'
 import { create } from 'zustand'
 
@@ -35,7 +35,39 @@ export const ResizeDragOverlay: FC = () => {
   return <div aria-hidden className="fixed inset-0 z-[9999]" />
 }
 
-/** 拖拽分隔条：8px 热区 + 居中 1px 线（hover/拖拽中高亮）。库自带键盘调整与双击复位。 */
+/**
+ * 像素对齐：flex-grow 百分比布局下面板边界常落在小数像素，1px 线经抗锯齿
+ * 会在右侧出现一条浅色虚影。把线平移到最近的设备像素（位移 < 0.5px，肉眼不可见）
+ * 即恢复单条清晰线。拖拽时库改写相邻 Panel 的 flexGrow 内联样式、窗口缩放也会
+ * 移动边界，二者都触发重新对齐。
+ */
+function usePixelSnapLine(): React.RefObject<HTMLDivElement | null> {
+  const lineRef = useRef<HTMLDivElement | null>(null)
+  useLayoutEffect(() => {
+    const line = lineRef.current
+    if (!line) return
+    const snap = (): void => {
+      line.style.transform = ''
+      const dpr = window.devicePixelRatio || 1
+      const x = line.getBoundingClientRect().left
+      const aligned = Math.round(x * dpr) / dpr
+      if (aligned !== x) line.style.transform = `translateX(${aligned - x}px)`
+    }
+    snap()
+    const neighbor = line.closest('[data-separator]')?.previousElementSibling
+    const observer = new MutationObserver(snap)
+    if (neighbor) observer.observe(neighbor, { attributes: true, attributeFilter: ['style'] })
+    window.addEventListener('resize', snap)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', snap)
+    }
+  }, [])
+  return lineRef
+}
+
+/** 拖拽分隔条：8px 热区 + 1px 线（hover/拖拽中高亮，像素对齐消除虚影）。
+ *  库自带键盘调整与双击复位。 */
 export function ResizableSeparator({
   className,
   onPointerDown,
@@ -43,6 +75,7 @@ export function ResizableSeparator({
 }: SeparatorProps): React.JSX.Element {
   // 拖拽时全屏遮罩盖住分隔条、hover 丢失，改用全局 dragging 标志保持高亮反馈
   const dragging = useResizeDragStore((s) => s.dragging)
+  const lineRef = usePixelSnapLine()
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
     useResizeDragStore.getState().begin()
     const end = (): void => {
@@ -64,6 +97,7 @@ export function ResizableSeparator({
       )}
     >
       <div
+        ref={lineRef}
         className={cn(
           'h-full w-px transition-colors',
           dragging ? 'bg-primary/40' : 'bg-border group-hover:bg-primary/25'
