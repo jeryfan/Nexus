@@ -70,7 +70,8 @@ export const FileTreeLayout: FC<{ children: ReactNode }> = ({ children }) => {
       </ResizablePanel>
       {treeVisible && (
         <>
-          <ResizableSeparator />
+          {/* 同 Shell：分隔条收为线宽（旧 border-l 位置），不留色带 */}
+          <ResizableSeparator className="w-px" />
           <ResizablePanel
             id="tree"
             defaultSize={TREE_DEFAULT_WIDTH}

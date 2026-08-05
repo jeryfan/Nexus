@@ -94,9 +94,10 @@ function Shell({ sidebar, children }: ShellProps): React.JSX.Element {
         </div>
       </ResizablePanel>
 
-      {/* 线贴分隔条左缘 = 边栏右缘（旧 border-r 位置）；分隔条着内容区底色，
-          5px 热区对内容区隐形——线读作边栏/内容区的边界，而非落在边栏色块内部 */}
-      <ResizableSeparator className="bg-background w-1.5 justify-start" />
+      {/* 分隔条收为线宽：线贴边栏右缘（旧 border-r 位置），边栏与内容区之间
+          不留色带；拖拽热区由库自动扩展到 ≥10px（resizeTargetMinimumSize），
+          hover 经 col-resize 光标提示 */}
+      <ResizableSeparator className="w-px" />
 
       {/* 右侧内容区：折叠后在顶部显示控制按钮 */}
       <ResizablePanel id="main" groupResizeBehavior="preserve-pixel-size">
