@@ -96,10 +96,12 @@ export function ResizableSeparator({
         className
       )}
     >
+      {/* -ml-px：线左叠 1px 盖住左侧面板边界（旧 border 语义），
+          避免线与面板边缘之间露出亚像素亮缝显得「又浅又粗」 */}
       <div
         ref={lineRef}
         className={cn(
-          'h-full w-px transition-colors',
+          '-ml-px h-full w-px transition-colors',
           dragging ? 'bg-primary/40' : 'bg-border group-hover:bg-primary/25'
         )}
       />
