@@ -377,7 +377,7 @@ export const ProjectPanel: FC = () => {
   // FileExplorerToolbar 等组件直接使用裸 Tooltip，依赖外层 Provider
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className="bg-background relative flex h-full w-full min-w-0 flex-col overflow-hidden rounded-lg">
+      <aside className="bg-background relative flex h-full w-full min-w-0 flex-col overflow-hidden">
         {/* 标签栏：标签页 + 「+」菜单（无标签时只留右侧按钮）；pr-4 与对话头部 px-4 对齐，使 PanelRight 开合面板时位置不动 */}
         <div className="flex h-12 shrink-0 items-center gap-1 overflow-x-auto pr-4 pl-2">
           {tabs.map((tab) => (

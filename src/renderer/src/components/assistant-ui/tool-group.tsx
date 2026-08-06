@@ -1,6 +1,14 @@
 'use client'
 
-import { memo, useCallback, useRef, useState, type FC, type PropsWithChildren } from 'react'
+import {
+  memo,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type FC,
+  type PropsWithChildren
+} from 'react'
 import { ChevronDownIcon, LoaderIcon } from 'lucide-react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { useScrollLock } from '@assistant-ui/react'
@@ -32,6 +40,13 @@ export type ToolGroupRootProps = Omit<
     open?: boolean
     onOpenChange?: (open: boolean) => void
     defaultOpen?: boolean
+    /**
+     * Whether the tool group is currently streaming. While `true` the
+     * disclosure is held open; when streaming ends it returns to
+     * `defaultOpen`, and the first manual toggle takes over the open/close
+     * state permanently.
+     */
+    streaming?: boolean
   }
 
 function ToolGroupRoot({
@@ -40,21 +55,34 @@ function ToolGroupRoot({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   defaultOpen = false,
+  streaming,
   children,
   ...props
 }: ToolGroupRootProps) {
   const collapsibleRef = useRef<HTMLDivElement>(null)
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
+  const initialOpenRef = useRef(defaultOpen)
+  const [userOpen, setUserOpen] = useState<boolean | null>(null)
   const lockScroll = useScrollLock(collapsibleRef, ANIMATION_DURATION)
 
   const isControlled = controlledOpen !== undefined
-  const isOpen = isControlled ? controlledOpen : uncontrolledOpen
+  const isOpen = isControlled ? controlledOpen : (userOpen ?? (streaming || initialOpenRef.current))
+
+  const prevStreamingRef = useRef(streaming)
+  useLayoutEffect(() => {
+    if (prevStreamingRef.current === streaming) return
+    prevStreamingRef.current = streaming
+    // A streaming transition only animates the panel when the resting state
+    // is collapsed; with `defaultOpen` the disclosure stays open across it.
+    if (!isControlled && userOpen === null && !initialOpenRef.current) {
+      lockScroll()
+    }
+  }, [streaming, isControlled, userOpen, lockScroll])
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
       lockScroll()
       if (!isControlled) {
-        setUncontrolledOpen(open)
+        setUserOpen(open)
       }
       controlledOnOpenChange?.(open)
     },

@@ -62,7 +62,7 @@ export const AgentPage: FC = () => {
   // 外层 Shell 的 <main> 是 app-drag（窗口拖拽区），对话区整体需 app-no-drag 才能交互
   return (
     <div className="app-no-drag h-full">
-      <div className="bg-muted/30 flex h-full overflow-hidden p-2">
+      <div className="flex h-full overflow-hidden">
         <ResizableGroup
           id="nexus-agent-page"
           className="min-w-0 flex-1"
@@ -77,7 +77,7 @@ export const AgentPage: FC = () => {
           >
             <div
               className={cn(
-                'bg-background flex h-full w-full flex-col overflow-hidden rounded-lg',
+                'bg-background flex h-full w-full flex-col overflow-hidden',
                 conversationHidden && 'hidden'
               )}
             >

@@ -491,7 +491,7 @@ const AssistantMessage: FC = () => {
                 return <div>{children}</div>
               case 'group-tool':
                 return (
-                  <ToolGroupRoot variant="ghost">
+                  <ToolGroupRoot variant="ghost" streaming={part.status.type === 'running'}>
                     <ToolGroupTrigger
                       count={part.indices.length}
                       active={part.status.type === 'running'}
@@ -502,7 +502,7 @@ const AssistantMessage: FC = () => {
               case 'group-reasoning': {
                 const running = part.status.type === 'running'
                 return (
-                  <ReasoningRoot defaultOpen={running}>
+                  <ReasoningRoot streaming={running}>
                     <ReasoningTrigger active={running} />
                     <ReasoningContent aria-busy={running}>
                       <ReasoningText>{children}</ReasoningText>
